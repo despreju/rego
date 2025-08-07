@@ -1,16 +1,18 @@
 <template>
-  <n-layout class="min-h-screen flex items-center justify-center bg-gray-100">
-    <n-card
-      class="w-full max-w-md"
-      title="Connexion"
-      size="medium"
-      bordered
-    >
-      <slot />
-    </n-card>
-  </n-layout>
+  
 </template>
 
 <script lang="ts" setup>
-import { NLayout, NCard } from 'naive-ui'
 </script>
+
+<style scoped>
+.rego-layout {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  min-width: 100vw;
+  box-sizing: border-box;
+}
+</style>

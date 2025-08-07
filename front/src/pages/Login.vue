@@ -1,57 +1,111 @@
 <template>
-  <AuthLayout>
-    <n-form :model="loginForm" class="space-y-4" @submit.prevent="onSubmitLogin">
-      <n-form-item label="Email">
-        <n-input v-model:value="loginForm.login" type="email" required />
-      </n-form-item>
-
-      <n-form-item label="Mot de passe">
-        <n-input v-model:value="loginForm.password" type="password" required />
-      </n-form-item>
-
-      <n-form-item>
-        <n-button type="primary" block :loading="loginMutation.isPending.value" @click="onSubmitLogin">
-          Se connecter
-        </n-button>
-      </n-form-item>
-    </n-form>
-    <n-form :model="signinForm" class="space-y-4" @submit.prevent="onSubmitSignin">
-      <n-form-item label="Email">
-        <n-input v-model:value="signinForm.login" type="email" required />
-      </n-form-item>
-
-      <n-form-item label="Mot de passe">
-        <n-input v-model:value="signinForm.password" type="password" required />
-      </n-form-item>
-
-      <n-form-item>
-        <n-button type="primary" block :loading="signinMutation.isPending.value" @click="onSubmitSignin">
-          S'inscrire
-        </n-button>
-      </n-form-item>
-    </n-form>
-  </AuthLayout>
+    <form class="login-form">
+        <div class="title">Bienvenue !</div>
+        <div class="input">
+            <label>Identifiant</label>
+            <input type="text" v-model="loginForm.login" required placeholder="Identifiant" />
+        </div>
+        <div class="input">
+            <label>Mot de passe</label>
+            <input type="password" v-model="loginForm.password" required placeholder="Mot de passe" />
+        </div>
+        <div class="button">
+            <button @click.prevent="onSubmitLogin">Se connecter</button>
+        </div>
+    </form>
 </template>
 
-<script lang="ts" setup>
-  import { ref } from 'vue';
-  import { useLogin, useSignin } from '../composables/useAuth';
+<script setup>
+import { ref } from 'vue';
+import { useLogin } from '../composables/useAuth';
 
-  const loginMutation = useLogin();
-  const signinMutation = useSignin();
+const loginMutation = useLogin();
 
-  const loginForm = ref({ login: '', password: '' });
-  const signinForm = ref({ login: '', password: '' });
+const loginForm = ref({ login: '', password: '' });
 
-  const onSubmitLogin = () => {
+const onSubmitLogin = () => {
     loginMutation.mutate({ login: loginForm.value.login, password: loginForm.value.password });
-  };
-  const onSubmitSignin = () => {
-    signinMutation.mutate({ login: signinForm.value.login, password: signinForm.value.password });
-  };
-
+};
 </script>
-
 <style scoped>
-/* Ton style ici */
+.login-form {
+    display: flex;
+    flex-direction: column;
+    margin: auto;
+    justify-content: space-between;
+    width: 28rem;
+    background: #1e1f25;
+    padding: 2rem;
+}
+
+.title {
+    margin-bottom:4rem;
+    color: white;
+    font-size: 2rem;
+}
+
+.input-password {
+    margin-top: 2rem;
+}
+
+.input {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 3rem;
+}
+
+label {
+    font-family: 'Roboto', sans-serif;
+    color: #c0c0c4;
+    font-size: 1rem;
+    text-align: left;
+    margin-bottom: 0.25rem;
+    font-size: 1rem;
+}
+
+input,
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover,
+textarea:-webkit-autofill:focus,
+select:-webkit-autofill,
+select:-webkit-autofill:hover,
+select:-webkit-autofill:focus {
+    all: unset;
+    display: flex;
+    text-align: left;
+    flex-direction: column;
+    height: 2rem;
+    font-family: 'Roboto', sans-serif;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    padding: 0.5rem 2rem;
+    background: #32323B;
+    color: #c0c0c4;
+    box-shadow: 0 0 0 1000px #32323B inset !important;
+    -webkit-box-shadow: 0 0 0 1000px #32323B inset !important;
+    -webkit-text-fill-color: #c0c0c4 !important;
+    transition: background-color 9999s ease-in-out 0s;
+}
+
+button {
+    all: unset;
+    width: 100%;
+    background: #0174DC;
+    color: #e8e8ec;
+    height: 2rem;
+    padding: 0.5rem 0;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    margin-top: 2rem;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+button:hover {
+    background: #005BB5;
+    transition: all 0.125s ease-in-out;
+}
 </style>

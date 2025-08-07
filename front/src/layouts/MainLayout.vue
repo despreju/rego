@@ -1,54 +1,51 @@
 <template>
-  <n-layout class="min-h-screen" has-sider>
-    <n-layout-sider width="200" bordered>
-      <div class="p-4 font-bold text-xl">MonApp</div>
-      <n-menu :options="menuOptions" @update:value="handleMenuSelect" />
-    </n-layout-sider>
 
-    <n-layout>
-      <n-layout-header bordered class="p-4 flex justify-between items-center">
-        <div class="text-lg font-semibold">Dashboard</div>
-        <n-button quaternary type="error" @click="logout">Déconnexion</n-button>
-      </n-layout-header>
-
-      <n-layout-content class="p-6">
-        <slot />
-      </n-layout-content>
-    </n-layout>
-  </n-layout>
 </template>
 
-<script lang="ts" setup>
-import {
-  NLayout,
-  NLayoutHeader,
-  NLayoutContent,
-  NLayoutSider,
-  NButton,
-  NMenu
-} from 'naive-ui'
-
+<script setup lang="ts">
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 
+const showSider = ref(false)
 const router = useRouter()
 
 const logout = () => {
   localStorage.removeItem('token')
   router.push('/login')
 }
-
-const menuOptions = [
-  {
-    label: 'Accueil',
-    key: 'home'
-  },
-  {
-    label: 'Profil',
-    key: 'profile'
-  }
-]
-
-const handleMenuSelect = (key: string) => {
-  router.push(`/${key}`)
-}
 </script>
+
+<style>
+.navbar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 1rem;
+  min-height: 56px;
+  background: #fff;
+}
+.navbar-left,
+.navbar-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.navbar-center {
+  flex: 1; 
+  text-align: center;
+}
+.rego-layout {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  min-width: 100vw;
+  box-sizing: border-box;
+}
+.n-drawer-header__main {
+  display: flex; 
+  justify-content: flex-end; 
+  align-items: center;
+}
+</style>

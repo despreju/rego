@@ -25,3 +25,8 @@ export const logout = async () => {
   const response = await api.get('/auth/logout');
   return response.data;
 };
+
+export const check = async () => {
+  const response = await api.get('/auth/verify-token')
+  return response.data;
+};

@@ -2,6 +2,10 @@ import { Request, Response } from 'express';
 import User from '../models/user.model';
 import { generateToken } from '../utils/generateToken';
 
+interface AuthRequest extends Request {
+  user?: any;
+}
+
 export const register = async (req: Request, res: Response) => {
   console.log('signin called');
   const { login, password } = req.body;
@@ -44,4 +48,8 @@ export const login = async (req: Request, res: Response) => {
 export const logout = async (req: Request, res: Response) => {
   console.log('logout called');
   res.status(200).json({ message: 'Logged out' });
+};
+
+export const check = async (req: AuthRequest, res: Response) => {
+  res.json({ user: req.user })
 };

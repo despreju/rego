@@ -1,16 +1,13 @@
 import { useMutation } from '@tanstack/vue-query';
-import { login, signin, logout } from '../services/authService';
+import { login, signin, logout, check } from '../services/authService';
 import type { LoginPayload, LoginResponse } from '../services/authService';
-import router from '../router';
 import { useAuthStore } from '../stores/auth'
 
 export const useLogin = () => useMutation<LoginResponse, Error, LoginPayload>({
     mutationFn: login,
     onSuccess: (data) => {
-        localStorage.setItem('rego-token', data.token)
-        const auth = useAuthStore()
-        auth.login()
-        router.push('/')
+        const authStore = useAuthStore()
+        authStore.login(data.token)
     },
 });
 
@@ -21,9 +18,21 @@ export const useSignin = () => useMutation<LoginResponse, Error, LoginPayload>({
 export const useLogout = () => useMutation({
     mutationFn: logout,
     onSuccess: () => {
-        localStorage.removeItem('rego-token')
         const auth = useAuthStore()
         auth.logout()
-        router.push('/login')
     },
+});
+
+export const useCheck = () => useMutation({
+    mutationFn: check,
+    onSuccess: () => {
+        console.log('success check');
+        const authStore = useAuthStore()
+        authStore.check()
+    },
+    onError: () => {
+        console.log('error check');
+        const authStore = useAuthStore()
+        authStore.logout()
+    }   
 });
