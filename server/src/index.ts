@@ -6,11 +6,25 @@ import authRoutes from './routes/auth.routes';
 import orderRoutes from './routes/order.routes';
 import bodyParser from 'body-parser';
 
+process.on('unhandledRejection', (reason) => {
+  console.error('Unhandled Rejection:', reason);
+});
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught Exception:', err);
+});
+
+const mongoUri = process.env.MONGO_URI;
+if (!mongoUri) {
+  console.error('MONGO_URI non défini — vérifie les variables d\'environnement sur Railway.');
+  // ne pas crash silencieusement ; quitte pour que la plateforme affiche l'erreur
+  process.exit(1);
+}
+
 console.log('Démarrage serveur ...')
 const app = express();
 dotenv.config();
 const allowed = [
-    "https://rego-three.vercel.app/",              // prod
+    process.env.VERCEL_URL,              // prod
     "http://localhost:5173",
     /\.vercel\.app$/                             // préviews vercel (regex)
 ];
@@ -37,6 +51,7 @@ mongoose.connect(process.env.MONGO_URI!)
     })
     .catch(err => {
         console.error('MongoDB connection error:', err);
+        process.exit(1);
     });
 
 app.get("/api/health", (_req, res) => res.json({ ok: true }));
