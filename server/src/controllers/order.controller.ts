@@ -2,17 +2,14 @@ import { Request, Response } from 'express';
 import Order from '../models/order.model';
 
 export const save = async (req: Request, res: Response) => {
-    const { date, categorie, id, prixClient, prixAchat, commentaire } = req.body;
+  const { date, categorie, id, prixClient, prixAchat, commentaire } = req.body;
   try {
-    const orderExists = await Order.findOne({ id });
-    if (orderExists) return res.status(400).json({ message: 'Order already exists' });
-
     const order = await Order.create({ date, categorie, id, prixClient, prixAchat, commentaire }) as import('../models/order.model').IOrder;
     res.status(201).json({
       _id: order._id,
     });
   } catch (error) {
-    console.log(error);
+    console.log({ date, categorie, id, prixClient, prixAchat, commentaire });
     res.status(500).json({ message: 'Server error' });
   }
 };

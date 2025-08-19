@@ -3,14 +3,14 @@ import api from './axios'
 export interface OrderPayload {
   date: Date | null;
   categorie: string | null;
-  id: string;
+  id: number;
   prixClient: number | null;
   prixAchat: number | null;
   commentaire: string | null;
 }
 
 export interface OrderResponse {
-  _id: string;
+  _id: number;
 }
 
 export const saveOrder = async (payload: OrderPayload): Promise<OrderResponse> => {
@@ -19,7 +19,6 @@ export const saveOrder = async (payload: OrderPayload): Promise<OrderResponse> =
 };
 
 export const getOrders = async () => {
-  console.log('Fetching orders');
   const response = await api.get('/order/orders');
   return response.data.map((order: OrderPayload) => ({
     ...order,

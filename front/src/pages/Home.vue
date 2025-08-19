@@ -1,223 +1,171 @@
 <template>
-    <h1>Listes des commandes : {{ formattedData.length }}</h1>
-    <ImportOrders />
-    <button @click="onLogout">Se déconnecter</button>
-    <div class="table-head">
-      <div class="table-head__id">ID</div>
-      <div class="table-head__categorie">Catégorie</div>
-      <div class="table-head__prixClient">Prix Client</div>
-      <div class="table-head__prixAchat">Prix Achat</div>
-      <div class="table-head__margeEuro">Marge €</div>
-      <div class="table-head__margePercent">Marge €</div>
-      <div class="table-head__commentaire">Commentaire</div>
-    </div>
-    <div v-for="data in formattedData" :key="data.id">
-      <div class="table-row">
-        <div class="table-row__id">
-          <Money class="w-2 h-2 text-red-500" />
-          <div>
-            <div>{{ data.id }}</div>
-            <div class="table-row__date">{{ data.date }}</div>
-          </div>
-        </div>
-        <div class="table-row__categorie"><div>{{ data.categorie }}</div></div>
-        <div class="table-row__prixClient">{{ data.prixClient }}</div>
-        <div class="table-row__prixAchat">{{ data.prixAchat }}</div>
-        <div class="table-row__margeEuro">{{ data.margeEuro }}</div> 
-        <div class="table-row__margePercent">{{ data.margePercent }}</div>
-        <div class="table-row__commentaire">{{ data.commentaire }}</div>
+  <div class="dashboard">
+    <div class="topbar">
+      <div class="title-page">Dashboard</div>
+      <div class="actions">
       </div>
     </div>
+    <div class="stats">
+      <div class="stats-bilan">
+        <div>Dépenses Shopify : <span class="stats-value">0 €</span></div>
+        <div>Dépenses Autres : <span class="stats-value">0 €</span></div>
+        <div>Chiffre d'affaires : <span class="stats-value">0 €</span></div>
+        <div>Bénéfice : <span class="stats-value">0 €</span></div>
+      </div>
+      <div class="stats-curve">
+        <apexchart type="area" height="350" :options="chartOptions" :series="series"></apexchart>
+      </div>
+    </div>
+  </div>
 </template>
 
-<script setup lang="ts">
-  import { useGetOrders } from '../composables/useOrder';
-  import { onMounted, computed } from 'vue';
-  import ImportOrders from '../components/ImportOrders.vue';
-  import { useOrderStore } from '../stores/order'
-  import Money from '../assets/icons/money.svg'
-import { useLogout } from '../composables/useAuth';
+<script setup lang="ts">import { computed } from 'vue'
+import { useOrderStore } from '../stores/order'
 
-  interface TransformedItem {
-    date: string;
-    categorie: string;
-    id: string;
-    prixClient: number;
-    prixAchat: number;
-    margeEuro: number;
-    margePercent: number;
-    commentaire: string;
-  }
+const order = useOrderStore()
 
-  const order = useOrderStore()
+// Génère les 30 derniers jours (du plus ancien au plus récent)
+const last30Days = Array.from({ length: 30 }, (_, i) => {
+  const d = new Date()
+  d.setDate(d.getDate() - (29 - i))
+  d.setHours(0, 0, 0, 0)
+  return d
+})
+// Prépare les catégories (jj/mm pour ApexCharts)
+const categories = last30Days.map(d =>
+  d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })
+)
 
-  // Définition des colonnes
-  const columns = [
-    { title: 'Date', key: 'date', defaultSortOrder: 'ascend', sorter: 'default' },
-    { title: 'Catégorie', key: 'categorie', defaultSortOrder: 'ascend', sorter: 'default' },
-    { title: 'ID', key: 'id', defaultSortOrder: 'ascend', sorter: 'default' },
-    { title: 'Prix client', key: 'prixClient', defaultSortOrder: 'ascend', sorter: 'default' },
-    { title: 'Prix achat', key: 'prixAchat', defaultSortOrder: 'ascend', sorter: 'default' },
-    { title: 'Commentaire', key: 'commentaire', defaultSortOrder: 'ascend', sorter: 'default' },
-  ]
+const series = computed(() => {
+  const countByDay: Record<string, number> = {}
+  const margeByDay: Record<string, number> = {}
 
-  const formattedData = computed<TransformedItem[]>(() => {
-    return order.ordersList.map(item => ({
-      date: item.date
-        ? item.date.toLocaleDateString('fr-FR', {
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit'
-          })
-        : '',
-      categorie: item.categorie ?? '',
-      id: '#' + (item.id ?? ''),
-      prixClient: (item.prixClient ?? 0) + " €",
-      prixAchat: Math.abs(item.prixAchat ?? 0) + " €",
-      margeEuro: ((item.prixClient ?? 0) + (item.prixAchat ?? 0)).toFixed(2) + " €",
-      margePercent: item.prixClient
-        ? (((item.prixClient ?? 0) + (item.prixAchat ?? 0)) / (item.prixClient ?? 1) * 100).toFixed(2) + " %"
-        : "0 %",
-      commentaire: item.commentaire ?? ''
-    }))
+  order.ordersList.forEach(item => {
+    let dateObj: Date
+    if (typeof item.date === 'string') {
+      const [day, month, year] = item.date.split('/')
+      dateObj = new Date(Number(year), Number(month) - 1, Number(day))
+    } else {
+      dateObj = item.date
+    }
+    if (!dateObj) return
+
+    const key = dateObj.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })
+    if (categories.includes(key)) {
+      countByDay[key] = (countByDay[key] || 0) + 1
+      const marge = Number(item.margeEuro ?? 0)
+      margeByDay[key] = (margeByDay[key] || 0) + marge
+    }
   })
 
-  const logoutMutation = useLogout();
-  const onLogout = () => {
-    logoutMutation.mutate();
-  };
-
-  onMounted(() => {
-    useGetOrders().mutate()
+  return [
+    {
+      name: 'Commandes',
+      data: categories.map(key => Math.round(countByDay[key]) || 0)
+    },
+    {
+      name: 'Marge (€)',
+      data: categories.map(key => Number((margeByDay[key] || 0).toFixed(1)))
+    }
+  ]
 })
+
+console.log('Series:', series.value)
+
+// Met à jour les catégories de l'axe X
+const chartOptions = computed(() => ({
+  chart: {
+    height: 350,
+    type: 'area',
+    toolbar: {
+      show: false
+    }
+  },
+  dataLabels: {
+    enabled: false
+  },
+  stroke: {
+    curve: 'smooth'
+  },
+  xaxis: {
+    type: 'category',
+    categories,
+    labels: {
+      show: false
+    },
+  },
+  yaxis: {
+    type: 'category',
+    categories,
+    labels: {
+      show: false
+    },
+  },
+  tooltip: {
+    x: {
+      format: 'MM-dd'
+    }
+  },
+  legend: {
+    show: true,        
+    position: "top",
+    labels: {
+      colors: "#fff"
+    }
+  },
+  grid: {
+    show: false   // ✅ enlève toutes les grilles
+  }
+}))
 </script>
 
 <style scoped>
-.table-head {
-  width: 100%;
+.dashboard {}
+
+.topbar {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px;
-  background: #32323B;
-  color: #F0F1F8;
-  border-radius:1rem;
-  margin-bottom:0.5rem;
-  padding: 1rem 1rem;
+  height: 10rem;
+  align-items: end;
+  margin-bottom: 1rem;
 }
 
-.table-head__id {
+.title-page {
+  color: rgb(228, 227, 227);
+  font-weight: bold;
+  font-size: 3rem;
   text-align: left;
-  width: 20%;
 }
 
-.table-head__categorie {
-  text-align: right;
-  width: 10%;
-}
-
-.table-head__prixClient {
-  text-align: right;
-  width: 10%;
-}
-
-.table-head__prixAchat {
-  text-align: right;
-  width: 10%;
-}
-
-.table-head__margeEuro {
-  text-align: right;
-  width: 10%;
-}
-
-.table-head__margePercent {
-  text-align: right;
-  width: 10%;
-}
-
-.table-head__commentaire {
-  padding-left: 5rem;
-  text-align: left;
-    width: 20%;
-}
-
-.table-row {
-  width: 100%;
+.actions {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 10px;
-  background: #32323B;
-  color: #F0F1F8;
-  border-radius:1rem;
-  margin-bottom:0.5rem;
-  padding: 1rem 1rem;
+  margin-left: auto;
+  margin-bottom: 1rem;
 }
 
-.table-row:hover {
-  background: #444450;
-  cursor: pointer;
+.action-button {
+  margin-left: 2rem;
 }
 
-.table-row__id {
+.stats {
   display: flex;
-  width: 20%;
 }
 
-.table-row__id > div {
-  margin-left: 1rem;
+.stats-bilan {
   display: flex;
   flex-direction: column;
-  width: 20%;
+  align-items: flex-start;
+  flex: 1;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 2rem;
+  margin-right: 4rem;
 }
 
-.table-row__date {
-  color: #808187;
-  font-style: italic;
-}
-
-.table-row__categorie {
-  text-align: right;
-  width: 10%;
-}
-
-.table-row__categorie > div{
-  background: #1C1B20;
-  padding: 0.4rem 1rem;
-  border-radius: 0.5rem;
-  color: #808187;
-}
-
-.table-row__prixClient {
-  text-align: right;
-  color: #F0F1F8;
-  font-weight: bold;
-  width: 10%
-}
-.table-row__prixAchat {
-  text-align: right;
-  color: #F0F1F8;
-  font-weight: bold;
-  width: 10%;
-}
-.table-row__margeEuro {
-  text-align: right;
-  color: #59AD9A;
-  font-weight: bold;
-  width: 10%;
-}
-.table-row__margePercent {
-  text-align: right;
-  color: #59AD9A;
-  font-weight: bold;
-  width: 10%;
-}
-.table-row__commentaire {
-  padding-left: 5rem;
-  width: 20%;
-  color: #b2b4bd;
-  font-style: italic;
-  text-align: left;
+.stats-curve {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 2rem;
 }
 </style>
