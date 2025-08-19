@@ -9,15 +9,27 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@tanstack/vue-query": "^5.83.1",
+    "apexcharts": "^5.3.3",
     "axios": "^1.11.0",
-    "vue": "^3.5.17"
+    "chart.js": "^3.9.1",
+    "date-fns": "^4.1.0",
+    "pinia": "^3.0.3",
+    "vue": "^3.5.17",
+    "vue-router": "^4.5.1",
+    "vue3-apexcharts": "^1.8.0",
+    "vue3-datepicker": "^0.4.0",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@types/axios": "^0.9.36",
+    "@types/node": "^24.1.0",
+    "@types/xlsx": "^0.0.35",
     "@vitejs/plugin-vue": "^6.0.0",
     "@vue/tsconfig": "^0.7.0",
     "typescript": "~5.8.3",
     "vite": "^7.0.4",
+    "vite-svg-loader": "^5.1.0",
     "vue-tsc": "^2.2.12"
   }
 }
