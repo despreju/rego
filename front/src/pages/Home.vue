@@ -42,14 +42,7 @@ const series = computed(() => {
 
   order.ordersList.forEach(item => {
     let dateObj: Date
-    if (typeof item.date === 'string') {
-      const [day, month, year] = item.date.split('/')
-      dateObj = new Date(Number(year), Number(month) - 1, Number(day))
-    } else {
-      dateObj = item.date
-    }
-    if (!dateObj) return
-
+    dateObj = item.date
     const key = dateObj.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })
     if (categories.includes(key)) {
       countByDay[key] = (countByDay[key] || 0) + 1
@@ -107,7 +100,7 @@ const chartOptions = computed(() => ({
     }
   },
   legend: {
-    show: true,        
+    show: true,
     position: "top",
     labels: {
       colors: "#fff"

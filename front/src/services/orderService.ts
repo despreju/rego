@@ -1,12 +1,12 @@
 import api from './axios'
 
 export interface OrderPayload {
-  date: Date | null;
-  categorie: string | null;
+  date: Date;
+  categorie: string;
   id: number;
-  prixClient: number | null;
-  prixAchat: number | null;
-  commentaire: string | null;
+  prixClient: number;
+  prixAchat: number;
+  commentaire: string;
 }
 
 export interface OrderResponse {
@@ -22,6 +22,6 @@ export const getOrders = async () => {
   const response = await api.get('/order/orders');
   return response.data.map((order: OrderPayload) => ({
     ...order,
-    date: order.date ? new Date(order.date) : null
+    date: order.date ? new Date(order.date) : new Date(0)
   }));
 };

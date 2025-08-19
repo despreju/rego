@@ -19,7 +19,7 @@ import Button from '../components/Button.vue';
 import Input from '../components/Input.vue';
 import { useSaveOrder } from '../composables/useOrder';
 
-import { computed, defineEmits, onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useOrderStore } from '../stores/order';
 
 const formOrder = ref<{
@@ -28,7 +28,7 @@ const formOrder = ref<{
     ourPrice: number,
     commentary: string,
     category: string,
-    date: Date | null
+    date: Date
 }>({
     id: 0,
     clientPrice: 0,
@@ -45,7 +45,7 @@ const dateString = computed({
             : ''
     },
     set(val: string) {
-        formOrder.value.date = val ? new Date(val) : null
+        formOrder.value.date = val ? new Date(val) : new Date(0);
     }
 })
 

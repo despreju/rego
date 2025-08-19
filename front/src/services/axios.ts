@@ -2,7 +2,7 @@ import axios from 'axios'
 import { getAccessToken } from '../utils/auth'
 
 const api = axios.create({
-  baseURL: 'http://localhost:3002/api', // exemple d'API publique
+  baseURL: `${import.meta.env.VITE_API_URL}/api`,
   timeout: 10000,
 })
 

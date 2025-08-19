@@ -97,7 +97,6 @@ function filter(index: number) {
 }
 
 const formattedData = computed<TransformedItem[]>(() => {
-    // Clés de tri dans l'ordre des colonnes
     const columnKeys = [
         'id',
         'categorie',
@@ -106,32 +105,43 @@ const formattedData = computed<TransformedItem[]>(() => {
         'margeEuro',
         'margePercent',
         'commentaire'
-    ];
+    ] as const;
 
-    // Tri si nécessaire
+    const list = Array.isArray(order.ordersList) ? order.ordersList.slice() : [];
+
     const activeColumn = columns.value.find(col => col.filter === 'up' || col.filter === 'down');
-    if (activeColumn) {
-        const colIndex = columns.value.indexOf(activeColumn);
-        const sortKey = columnKeys[colIndex];
+    if (!activeColumn) return list as unknown as TransformedItem[];
 
-        return order.ordersList.sort((a, b) => {
-            let aValue = a[sortKey];
-            let bValue = b[sortKey];
+    const colIndex = columns.value.indexOf(activeColumn);
+    if (colIndex < 0 || colIndex >= columnKeys.length) return list as unknown as TransformedItem[];
 
-            // Pour les champs numériques, on trie sur le nombre
-            if (['prixClient', 'prixAchat', 'margeEuro', 'margePercent', 'id'].includes(sortKey)) {
-                aValue = Number(aValue) || 0;
-                bValue = Number(bValue) || 0;
-            } else {
-                aValue = aValue ?? '';
-                bValue = bValue ?? '';
-            }
+    const sortKey = columnKeys[colIndex] as string;
 
-            if (aValue < bValue) return activeColumn.filter === 'up' ? -1 : 1;
-            if (aValue > bValue) return activeColumn.filter === 'up' ? 1 : -1;
-            return 0;
-        });
-    }
+    // copie pour ne pas muter store
+    const sorted = list.slice().sort((a, b) => {
+        const aRaw = (a as any)[sortKey];
+        const bRaw = (b as any)[sortKey];
+
+        // gérer numériques vs chaines
+        const numericKeys = ['prixClient', 'prixAchat', 'margeEuro', 'margePercent', 'id'];
+        let aValue: number | string = aRaw ?? '';
+        let bValue: number | string = bRaw ?? '';
+
+        if (numericKeys.includes(sortKey)) {
+            aValue = Number(aValue) || 0;
+            bValue = Number(bValue) || 0;
+        } else {
+            aValue = String(aValue);
+            bValue = String(bValue);
+        }
+
+        if (aValue < bValue) return activeColumn.filter === 'up' ? -1 : 1;
+        if (aValue > bValue) return activeColumn.filter === 'up' ? 1 : -1;
+        return 0;
+    });
+
+    // si TransformedItem diffère du type d'origine, transforme ici ; sinon cast
+    return sorted as unknown as TransformedItem[];
 });
 
 const isNewOrderPanelOpen = ref(false)

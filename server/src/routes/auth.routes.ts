@@ -9,11 +9,5 @@ router.post('/login', login);
 router.get('/logout', logout);
 router.get('/verify-token', protect, check);
 
-router.get('/api/users', (_req, res) => {
-  res.json([{ id: 1, login: 'carole' }, { id: 2, login: 'julien' }, { id: 3, login: 'aurélie' }]);
-});
-
-
-
 export default router;
 

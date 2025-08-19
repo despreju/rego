@@ -65,6 +65,7 @@ const goTo = (path: string) => {
 };
 
 onMounted(() => {
+  console.log('MainLayout mounted');
     useGetOrders().mutate()
 })
 </script>
