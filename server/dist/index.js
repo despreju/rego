@@ -10,11 +10,19 @@ const cors_1 = __importDefault(require("cors"));
 const auth_routes_1 = __importDefault(require("./routes/auth.routes"));
 const order_routes_1 = __importDefault(require("./routes/order.routes"));
 const body_parser_1 = __importDefault(require("body-parser"));
+
+dotenv_1.default.config();
+
+const mongoUri = process.env.MONGO_URI;
+if (!mongoUri) {
+    console.error('MONGO_URI non défini — vérifie les variables d\'environnement sur Railway.');
+    // ne pas crash silencieusement ; quitte pour que la plateforme affiche l'erreur
+    process.exit(1);
+}
 console.log('Démarrage serveur ...');
 const app = (0, express_1.default)();
-dotenv_1.default.config();
 const allowed = [
-    "https://rego-three.vercel.app/", // prod
+    process.env.VERCEL_URL, // prod
     "http://localhost:5173",
     /\.vercel\.app$/ // préviews vercel (regex)
 ];
@@ -37,7 +45,28 @@ mongoose_1.default.connect(process.env.MONGO_URI)
 })
     .catch(err => {
     console.error('MongoDB connection error:', err);
+    process.exit(1);
 });
 app.get("/api/health", (_req, res) => res.json({ ok: true }));
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`API on :${PORT}`));
+const port = Number(process.env.PORT) || 3000;
+const server = app.listen(port, '0.0.0.0', () => {
+    console.log('API on :', port);
+});
+process.on('unhandledRejection', (reason) => {
+    console.error('Unhandled Rejection:', reason);
+});
+process.on('uncaughtException', (err) => {
+    console.error('Uncaught Exception:', err);
+});
+process.on('SIGTERM', () => {
+    console.log('SIGTERM reçu — fermeture propre du serveur');
+    server.close(() => {
+        console.log('Serveur fermé après SIGTERM');
+        process.exit(0);
+    });
+});
+process.on('SIGINT', () => {
+    console.log('SIGINT reçu — fermeture');
+    server.close(() => process.exit(0));
+});
