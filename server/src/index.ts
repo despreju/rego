@@ -10,7 +10,7 @@ console.log('Démarrage serveur ...')
 const app = express();
 dotenv.config();
 const allowed = [
-    "https://ton-front.vercel.app",              // prod
+    "https://rego-h5kxx6zru-julien-desprezs-projects.vercel.app",              // prod
     "http://localhost:5173",
     /\.vercel\.app$/                             // préviews vercel (regex)
 ];
