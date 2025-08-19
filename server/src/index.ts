@@ -6,12 +6,7 @@ import authRoutes from './routes/auth.routes';
 import orderRoutes from './routes/order.routes';
 import bodyParser from 'body-parser';
 
-process.on('unhandledRejection', (reason) => {
-  console.error('Unhandled Rejection:', reason);
-});
-process.on('uncaughtException', (err) => {
-  console.error('Uncaught Exception:', err);
-});
+dotenv.config();
 
 const mongoUri = process.env.MONGO_URI;
 if (!mongoUri) {
@@ -22,7 +17,7 @@ if (!mongoUri) {
 
 console.log('Démarrage serveur ...')
 const app = express();
-dotenv.config();
+
 const allowed = [
     process.env.VERCEL_URL,              // prod
     "http://localhost:5173",
@@ -56,4 +51,27 @@ mongoose.connect(process.env.MONGO_URI!)
 
 app.get("/api/health", (_req, res) => res.json({ ok: true }));
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`API on :${PORT}`));
+
+const port = Number(process.env.PORT) || 3000;
+const server = app.listen(port, '0.0.0.0', () => {
+  console.log('API on :', port);
+});
+
+process.on('unhandledRejection', (reason) => {
+  console.error('Unhandled Rejection:', reason);
+});
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught Exception:', err);
+});
+
+process.on('SIGTERM', () => {
+  console.log('SIGTERM reçu — fermeture propre du serveur');
+  server.close(() => {
+    console.log('Serveur fermé après SIGTERM');
+    process.exit(0);
+  });
+});
+process.on('SIGINT', () => {
+  console.log('SIGINT reçu — fermeture');
+  server.close(() => process.exit(0));
+});
