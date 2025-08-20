@@ -25,7 +25,8 @@
             <div class="table-row">
                 <div class="table-row__id">
                     <money style="width: 40px;" class="w-2 h-2 text-red-500" v-if="data.categorie === 'Commandes'" />
-                    <shopify style="width: 48px; fill: white;" class="w-2 h-2 text-red-500" v-else-if="data.categorie === 'Shopify'" />
+                    <shopify style="width: 48px; fill: white;" class="w-2 h-2 text-red-500"
+                        v-else-if="data.categorie === 'Shopify'" />
                     <unknowIcon style="width: 48px; fill: white;" class="w-2 h-2 text-red-500" v-else />
                     <div>
                         <div>#{{ data.id }}</div>
@@ -33,8 +34,9 @@
                     </div>
                 </div>
                 <div class="table-row__categorie">
-                    <Tag :icon="data.categorie === 'Shopify' ? shopify : data.categorie === 'Commandes' ? money : unknowIcon" 
-                         :color="data.categorie === 'Shopify' ? 'green' : data.categorie === 'Commandes' ? 'orange' : 'blue'">{{ data.categorie }}</Tag>
+                    <Tag :icon="data.categorie === 'Shopify' ? shopify : data.categorie === 'Commandes' ? money : unknowIcon"
+                        :color="data.categorie === 'Shopify' ? 'green' : data.categorie === 'Commandes' ? 'orange' : 'blue'">
+                        {{ data.categorie }}</Tag>
                 </div>
                 <div class="table-row__prixClient">{{ data.prixClient }} €</div>
                 <div class="table-row__prixAchat">{{ data.prixAchat }} €</div>
@@ -158,22 +160,17 @@ const isBlur = computed(() => ({
 
 <style scoped>
 .new-order-panel.-open {
-    width: 30%;
-    transition: all 0.15s ease-in-out;
-    box-shadow: -8px 0 16px -8px rgba(0, 0, 0, 0.25);
-    padding: 2rem 4rem;
+    top: 0;
 }
 
 .orders-content {
     filter: blur(0px);
-    transition: all 0.15s ease-in-out;
 }
 
 .orders-content.-blur {
     filter: blur(4px);
     pointer-events: none;
     user-select: none;
-    transition: all 0.15s ease-in-out;
 }
 
 .topbar {

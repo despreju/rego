@@ -58,4 +58,11 @@ button {
 .button--green:hover {
     background-color: #006d00;
 }
+
+.button--grey {
+    background-color: #272831;
+}
+.button--grey:hover {
+    background-color: #060506;
+}
 </style>

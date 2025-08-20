@@ -1,3 +1,4 @@
+import { useAuthStore } from '../stores/auth';
 import api from './axios'
 
 export interface LoginPayload {
@@ -27,6 +28,15 @@ export const logout = async () => {
 };
 
 export const check = async () => {
-  const response = await api.get('/auth/verify-token')
-  return response.data;
+  try {
+    const response = await api.get('/auth/verify-token');
+    console.log('Success checking auth');
+    const authStore = useAuthStore()
+    authStore.check()
+    return response.data;
+  } catch (error) {
+    console.log('Error checking auth:', error);
+    const authStore = useAuthStore()
+    authStore.logout()
+  }
 };

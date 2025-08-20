@@ -32,23 +32,26 @@ select:-webkit-autofill:focus {
     display: flex;
     text-align: left;
     flex-direction: column;
+    justify-content: center;
     height: 2rem;
     font-family: 'Roboto', sans-serif;
     border-radius: 0.5rem;
     font-size: 1rem;
-    padding: 0.5rem 2rem;
+    padding: 1.5rem 2rem;
     background: #32323B;
     color: #c0c0c4;
     box-shadow: 0 0 0 1000px #32323B inset !important;
     -webkit-box-shadow: 0 0 0 1000px #32323B inset !important;
     -webkit-text-fill-color: #c0c0c4 !important;
     transition: background-color 9999s ease-in-out 0s;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .input {
     display: flex;
     flex-direction: column;
-    margin-bottom: 3rem;
+    width: 100%;
 }
 
 label {

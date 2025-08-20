@@ -1,14 +1,23 @@
 <template>
     <div class="new-order-panel">
         <div class="panel-title">Ajouter une nouvelle commande</div>
-        <Input class="order-input" label="ID" type="number" placeholder="0000" v-model="formOrder.id" />
-        <Input class="order-input" label="Date" type="date" placeholder="jj-mm-aaaa" v-model="dateString"/>
-        <Input class="order-input" label="Prix client (€)" type="number" placeholder="0" v-model="formOrder.clientPrice" />
-        <Input class="order-input" label="Prix achat (€)" type="number" placeholder="0" v-model="formOrder.ourPrice" />
+        <div class="new-order-panel__row">
+            <Input class="order-input" label="ID" type="number" placeholder="0000" v-model="formOrder.id" />
+            <span style="width:10%"></span>
+            <Input class="order-input" label="Date" type="date" placeholder="jj-mm-aaaa" v-model="dateString" />
+        </div>
+        <div class="new-order-panel__row">
+            <Input class="order-input" label="Prix client (€)" type="number" placeholder="0"
+                v-model="formOrder.clientPrice" />
+            <span style="width:10%"></span>
+            <Input class="order-input" label="Prix achat (€)" type="number" placeholder="0"
+                v-model="formOrder.ourPrice" />
+        </div>
+
         <Input class="order-input" label="Catégories" type="text" placeholder="" v-model="formOrder.category" />
         <Input class="order-input" label="Commentaire" type="text" placeholder="" v-model="formOrder.commentary" />
         <div class="actions-bar">
-            <Button @click="saveOrder">Ajouter</Button>
+            <Button color="grey" @click="onSaveOrder">Ajouter</Button>
             <Button color="red" @click="emitClose">Annuler</Button>
         </div>
     </div>
@@ -17,10 +26,10 @@
 <script setup lang="ts">
 import Button from '../components/Button.vue';
 import Input from '../components/Input.vue';
-import { useSaveOrder } from '../composables/useOrder';
 
 import { computed, onMounted, ref } from 'vue'
 import { useOrderStore } from '../stores/order';
+import { saveOrder } from '../api/orderService';
 
 const formOrder = ref<{
     id: number,
@@ -49,16 +58,14 @@ const dateString = computed({
     }
 })
 
-const saveOrderMutation = useSaveOrder();
-
-const saveOrder = () => {
-    saveOrderMutation.mutate({
+const onSaveOrder = () => {
+    saveOrder({
         id: formOrder.value.id,
         prixClient: formOrder.value.clientPrice,
         prixAchat: formOrder.value.ourPrice,
         commentaire: formOrder.value.commentary,
         date: formOrder.value.date,
-        categorie: 'TEST'
+        categorie: formOrder.value.category
     });
     emitClose();
 };
@@ -70,9 +77,9 @@ function emitClose() {
 
 const order = useOrderStore()
 function getLastId() {
-   if (!order.ordersList.length) return 1
+    if (!order.ordersList.length) return 1
     // On récupère le plus grand id numérique de la liste
-    return Math.max(...order.ordersList.map(o => Number(o.id) || 0)) + 1 
+    return Math.max(...order.ordersList.map(o => Number(o.id) || 0)) + 1
 }
 
 onMounted(() => {
@@ -90,19 +97,24 @@ onMounted(() => {
 <style scoped>
 .new-order-panel {
     position: fixed;
-    top: 0;
+    display: none;
+    top: 100%;
     right: 0;
-    width: 0%;
-    height: 100%;
+    left: 0;
+    bottom: 0;
+    margin: 10% 30%;
+    padding: 4rem;
     background-color: #1C1B20;
     z-index: 1000;
-    transition: all 0.15s ease-in-out;
     display: flex;
     flex-direction: column;
+    box-shadow: -8px 0 16px -8px rgba(0, 0, 0, 0.25);
+    padding: 2rem 4rem;
 }
 
-.order-input {
-    margin-bottom: 1rem;
+.new-order-panel__row {
+    display: flex;
+    width: 100%;
 }
 
 .panel-title {
@@ -116,5 +128,9 @@ onMounted(() => {
     display: flex;
     justify-content: space-around;
     margin-top: auto;
+}
+
+.order-input {
+    margin-bottom: 2rem;
 }
 </style>

@@ -36,8 +36,10 @@ import orders from '../assets/icons/orders.svg';
 import home from '../assets/icons/home.svg';
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router';
-import { useLogout } from '../composables/useAuth';
-import { useGetOrders } from '../composables/useOrder';
+import { logout } from '../api/authService';
+import { useAuthStore } from '../stores/auth';
+import { getOrders } from '../api/orderService';
+import { useOrderStore } from '../stores/order';
 
 const isSidebarOpen = ref(false)
 
@@ -55,9 +57,11 @@ const toggleSidebar = () => {
 
 const router = useRouter();
 
-const logoutMutation = useLogout();
 const onSubmitLogout = () => {
-    logoutMutation.mutate();
+  logout().then(() => {
+    const authStore = useAuthStore()
+    authStore.logout()
+  });
 };
 
 const goTo = (path: string) => {
@@ -65,9 +69,13 @@ const goTo = (path: string) => {
 };
 
 onMounted(() => {
-  console.log('MainLayout mounted');
-    useGetOrders().mutate()
-})
+  getOrders().then(orders => {
+    const order = useOrderStore()
+    order.saveOrders(orders);
+  }).catch(error => {
+    console.error('Error fetching orders:', error);
+  });
+});
 </script>
 
 <style scoped>

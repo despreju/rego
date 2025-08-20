@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import type { OrderPayload } from '../services/orderService'
+import type { OrderPayload } from '../api/orderService'
 
 interface Order {
   date: Date;

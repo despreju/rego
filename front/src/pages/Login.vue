@@ -15,18 +15,28 @@
     </form>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue';
-import { useLogin } from '../composables/useAuth';
+import { login } from '../api/authService';
+import { useAuthStore } from '../stores/auth';
 
-const loginMutation = useLogin();
 
 const loginForm = ref({ login: '', password: '' });
 
 const onSubmitLogin = () => {
-    loginMutation.mutate({ login: loginForm.value.login, password: loginForm.value.password });
+    login({
+        login: loginForm.value.login,
+        password: loginForm.value.password
+    }).then(response => {
+        console.log('Login successful:', response);
+        const authStore = useAuthStore()
+        authStore.login(response.token)
+    }).catch(error => {
+        console.error('Login failed:', error);
+    });
 };
 </script>
+
 <style scoped>
 .login-form {
     display: flex;
@@ -39,7 +49,7 @@ const onSubmitLogin = () => {
 }
 
 .title {
-    margin-bottom:4rem;
+    margin-bottom: 4rem;
     color: white;
     font-size: 2rem;
 }

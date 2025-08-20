@@ -3,7 +3,7 @@ import { useAuthStore } from '../stores/auth';
 import Login from '../pages/Login.vue';
 import Home from '../pages/Home.vue';
 import Orders from '../pages/Orders.vue';
-import { useCheck } from '../composables/useAuth';
+import { check } from '../api/authService';
 
 const routes = [
   {
@@ -40,7 +40,6 @@ router.beforeEach(async (to, _, next) => {
 
   if (auth.isAuthenticated) {
     // Authentifié, pas besoin de check
-    console.log('Utilisateur authentifié, accès autorisé à la route :', to.path);
     return next();
   }
 
@@ -51,16 +50,14 @@ router.beforeEach(async (to, _, next) => {
 
   // L'utilisateur n'est pas encore authentifié mais essaie d'accéder à une route protégée
   try {
-    const checkMutation = useCheck();
-    await checkMutation.mutateAsync();
-
-    if (auth.isAuthenticated) {
-      return next();
-    } else {
-      return next('/login');
-    }
+    check().then(() => {
+      if (auth.isAuthenticated) {
+        return next();
+      } else {
+        return next('/login');
+      }
+    })
   } catch (error) {
-    console.error('Erreur lors de la vérification de session :', error);
     return next('/login');
   }
 });

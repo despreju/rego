@@ -7,11 +7,10 @@
 
 <script lang="ts" setup>
 import * as XLSX from 'xlsx';
-import { useSaveOrder } from '../composables/useOrder';
 import Button from './Button.vue';
 import { ref } from 'vue';
+import { saveOrder } from '../api/orderService';
 
-const saveOrderMutation = useSaveOrder();
 
 function handleFileUpload(file: File) {
 
@@ -25,29 +24,20 @@ function handleFileUpload(file: File) {
         const rows = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
         let counter = ref(0);
 
-        for (const [index, row] of (rows as any[]).entries()) {
-            try {
-                counter.value++;
-                saveOrderMutation.mutate({
-                    date: excelDateToJSDate(row["Date"]) || '',
-                    categorie: row["Catégorie"] || '',
-                    id: row["ID"] || '',
-                    prixClient: Math.abs(Number(row["Prix client"])) || 0,
-                    prixAchat: Math.abs(Number(row["Prix achat"])) || 0,
-                    commentaire: row["Commentaire"] || '',
-                },
-                {
-                    onSuccess: () => {
-                        console.log('Ligne', index, ': succès');
-                    },
-                    onError: (error) => {
-                        console.log('Erreur sur la ligne :', index, error);
-                    }
-                }
-                );
-            } catch (error) {
-                console.log('erreur sur la ligne : ' + index + ' ' + error)
-            }
+        for (const row of (rows as any[]).entries()) {
+            counter.value++;
+            saveOrder({
+                date: excelDateToJSDate(row[1]["Date"]) || '',
+                categorie: row[1]["Catégorie"] || '',
+                id: row[1]["ID"] || '',
+                prixClient: Math.abs(Number(row[1]["Prix client"])) || 0,
+                prixAchat: Math.abs(Number(row[1]["Prix achat"])) || 0,
+                commentaire: row[1]["Commentaire"] || '',
+            }).then(response => {
+                console.log('Order saved successfully:', response);
+            }).catch(error => {
+                console.error('Error saving order:', error);
+            });
         }
         console.log(`Import terminé, ${counter.value} lignes traitées.`);
     };
