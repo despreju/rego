@@ -10,7 +10,8 @@
             <input type="password" v-model="loginForm.password" required placeholder="Mot de passe" />
         </div>
         <div class="button">
-            <button @click.prevent="onSubmitLogin">Se connecter</button>
+            <button @click.prevent="onSubmitLogin" v-if="!isLoading">Se connecter</button>
+            <Loading v-else/>
         </div>
     </form>
 </template>
@@ -19,11 +20,13 @@
 import { ref } from 'vue';
 import { login } from '../api/authService';
 import { useAuthStore } from '../stores/auth';
-
+import Loading from '../assets/icons/loading.svg';
+const isLoading = ref(false);
 
 const loginForm = ref({ login: '', password: '' });
 
 const onSubmitLogin = () => {
+    isLoading.value = true;
     login({
         login: loginForm.value.login,
         password: loginForm.value.password
@@ -33,6 +36,8 @@ const onSubmitLogin = () => {
         authStore.login(response.token)
     }).catch(error => {
         console.error('Login failed:', error);
+    }).finally(() => {
+        isLoading.value = false;
     });
 };
 </script>

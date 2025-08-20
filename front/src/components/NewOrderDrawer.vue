@@ -17,8 +17,9 @@
         <Input class="order-input" label="Catégories" type="text" placeholder="" v-model="formOrder.category" />
         <Input class="order-input" label="Commentaire" type="text" placeholder="" v-model="formOrder.commentary" />
         <div class="actions-bar">
-            <Button color="grey" @click="onSaveOrder">Ajouter</Button>
-            <Button color="red" @click="emitClose">Annuler</Button>
+            <Button color="grey" @click="onSaveOrder" v-if="!isLoading">Ajouter</Button>
+            <Button color="red" @click="emitClose" v-if="!isLoading">Annuler</Button>
+            <Loading v-else/>
         </div>
     </div>
 </template>
@@ -26,7 +27,7 @@
 <script setup lang="ts">
 import Button from '../components/Button.vue';
 import Input from '../components/Input.vue';
-
+import Loading from '../assets/icons/loading.svg';
 import { computed, onMounted, ref } from 'vue'
 import { useOrderStore } from '../stores/order';
 import { saveOrder } from '../api/orderService';
@@ -58,7 +59,10 @@ const dateString = computed({
     }
 })
 
+const isLoading = ref(false);
+
 const onSaveOrder = () => {
+    isLoading.value = true;
     saveOrder({
         id: formOrder.value.id,
         prixClient: formOrder.value.clientPrice,
@@ -66,8 +70,11 @@ const onSaveOrder = () => {
         commentaire: formOrder.value.commentary,
         date: formOrder.value.date,
         categorie: formOrder.value.category
+    }).then(() => {
+        emitClose();
+    }).finally(() => {
+        isLoading.value = false;
     });
-    emitClose();
 };
 
 const emit = defineEmits(['close'])
