@@ -9,7 +9,7 @@
 import * as XLSX from 'xlsx';
 import Button from './Button.vue';
 import { ref } from 'vue';
-import { saveOrder } from '../api/orderService';
+import { saveOrder } from '../api/orderApi';
 
 
 function handleFileUpload(file: File) {

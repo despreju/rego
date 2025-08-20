@@ -1,6 +1,7 @@
 <template>
-    <NewOrderDrawer :class="newOrderPanelClass" @close="isNewOrderPanelOpen = false" />
-    <div class="orders-content" :class="isBlur">
+    <EditOrderPanel v-if="isNewOrderPanelOpen" @close="isNewOrderPanelOpen = false; orderToEdit = null" :order="orderToEdit" />
+    <DeleteOrderPanel v-if="idOrderToDelete !== null" :orderId="idOrderToDelete" @close="idOrderToDelete = null" />
+    <div class="orders-content">
         <div class="topbar">
             <div class="title-page">Commandes</div>
             <div class="actions">
@@ -12,7 +13,8 @@
         </div>
         <div class="table-info"><strong>{{ formattedData.length }}</strong> résultats</div>
         <div class="table-head">
-            <div v-for="(column, index) in columns" :key="index" :style="{ width: column.size + '%' }">
+            <div v-for="(column, index) in columns" :class="column.title" :key="index"
+                :style="{ width: column.size + '%' }">
                 {{ column.title }}
                 <div v-if="column.filter" class="filter" @click="filter(index)">
                     <arrow_down class="filter-icon" v-if="column.filter === 'up'" />
@@ -43,6 +45,14 @@
                 <div class="table-row__margeEuro">{{ data.margeEuro }} €</div>
                 <div class="table-row__margePercent">{{ data.margePercent }} %</div>
                 <div class="table-row__commentaire">{{ data.commentaire }}</div>
+                <div class="table-row__data-actions">
+                    <div class="actions-icons" style="margin-right:1rem">
+                        <edit style="width: 32px; height: 32px;"  @click="editOrder(data)"/>
+                    </div>
+                    <div class="actions-icons" @click="idOrderToDelete = data.id">
+                        <deleteIcon style="width: 32px; height: 32px;" />
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -56,36 +66,29 @@ import { useOrderStore } from '../stores/order'
 import money from '../assets/icons/money.svg'
 import arrow_up from '../assets/icons/arrow_up.svg'
 import arrow_down from '../assets/icons/arrow_down.svg'
+import edit from '../assets/icons/edit.svg'
+import deleteIcon from '../assets/icons/delete.svg'
 import shopify from '../assets/icons/shopify.svg'
 import filterIcon from '../assets/icons/filter.svg'
 import unknowIcon from '../assets/icons/unknow.svg'
 import Button from '../components/Button.vue';
 import Tag from '../components/Tag.vue';
-import NewOrderDrawer from '../components/NewOrderDrawer.vue';
+import EditOrderPanel from '../components/EditOrderPanel.vue';
+import DeleteOrderPanel from '../components/DeleteOrderPanel.vue';
 import { format } from 'date-fns'
-
-interface TransformedItem {
-    date: string;
-    categorie: string;
-    id: string;
-    prixClient: number;
-    prixAchat: number;
-    margeEuro: number;
-    margePercent: number;
-    commentaire: string;
-}
-
+import type { TransformedItem } from '../types/index.ts';
 const order = useOrderStore()
 
 // Définition des colonnes
 const columns = ref([
-    { title: '# ID', size: 20, filter: 'down' },
+    { title: '# ID', size: 15, filter: 'down' },
     { title: 'Catégorie', size: 10 },
     { title: 'Prix Client', size: 10, filter: 'none' },
     { title: 'Prix Achat', size: 10, filter: 'none' },
     { title: 'Marge €', size: 10, filter: 'none' },
     { title: 'Marge %', size: 10, filter: 'none' },
-    { title: 'Commentaire', size: 20 },
+    { title: 'Commentaire', size: 25 },
+    { title: '', size: 10 },
 ])
 
 function filter(index: number) {
@@ -146,33 +149,18 @@ const formattedData = computed<TransformedItem[]>(() => {
     return sorted as unknown as TransformedItem[];
 });
 
+const orderToEdit = ref<TransformedItem | null>(null);
+
+const editOrder = (data: TransformedItem) => {
+    orderToEdit.value = data;
+    isNewOrderPanelOpen.value = true;
+}
+
 const isNewOrderPanelOpen = ref(false)
-
-const newOrderPanelClass = computed(() => ({
-    'new-order-panel': true,
-    '-open': isNewOrderPanelOpen.value
-}))
-
-const isBlur = computed(() => ({
-    '-blur': isNewOrderPanelOpen.value
-}))
+const idOrderToDelete = ref<number | null>(null)
 </script>
 
 <style scoped>
-.new-order-panel.-open {
-    top: 0;
-}
-
-.orders-content {
-    filter: blur(0px);
-}
-
-.orders-content.-blur {
-    filter: blur(4px);
-    pointer-events: none;
-    user-select: none;
-}
-
 .topbar {
     display: flex;
     height: 10rem;
@@ -218,7 +206,12 @@ const isBlur = computed(() => ({
     font-size: 0.85rem;
 }
 
-* .table-head>div:first-child {
+.table-head>div.Commentaire {
+    padding-left: 3.5rem;
+    justify-content: start;
+}
+
+.table-head>div:first-child {
     padding-left: 3.5rem;
     justify-content: start;
 }
@@ -238,42 +231,6 @@ const isBlur = computed(() => ({
     fill: white;
 }
 
-.table-head__id {
-    text-align: left;
-    width: 20%;
-}
-
-.table-head__categorie {
-    text-align: right;
-    width: 10%;
-}
-
-.table-head__prixClient {
-    text-align: right;
-    width: 10%;
-}
-
-.table-head__prixAchat {
-    text-align: right;
-    width: 10%;
-}
-
-.table-head__margeEuro {
-    text-align: right;
-    width: 10%;
-}
-
-.table-head__margePercent {
-    text-align: right;
-    width: 10%;
-}
-
-.table-head__commentaire {
-    padding-left: 5rem;
-    text-align: left;
-    width: 20%;
-}
-
 .table-row {
     width: 100%;
     display: flex;
@@ -287,21 +244,16 @@ const isBlur = computed(() => ({
     padding: 1rem 1rem;
 }
 
-.table-row:hover {
-    background: #444450;
-    cursor: pointer;
-}
-
 .table-row__id {
     display: flex;
-    width: 20%;
+    width: 15%;
 }
 
 .table-row__id>div {
     margin-left: 1rem;
     display: flex;
     flex-direction: column;
-    width: 20%;
+    width: 15%;
     text-align: left;
 }
 
@@ -346,9 +298,38 @@ const isBlur = computed(() => ({
 
 .table-row__commentaire {
     padding-left: 5rem;
-    width: 20%;
+    width: 25%;
     color: #b2b4bd;
     font-style: italic;
     text-align: left;
+}
+
+.table-row__data-actions {
+    display: flex;
+    width: 10%;
+    justify-content: end;
+    color: white;
+}
+
+.actions-icons {
+    width: 3rem;
+    height: 3rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border-radius: 50%;
+    transition: all .18s ease;
+    box-sizing: border-box;
+    background: #2e2e36;
+    border-radius: 12px;
+    box-shadow: 6px 6px 12px rgba(0, 0, 0, 0.4), -6px -6px 12px rgba(255, 255, 255, 0.03), inset 0 0 0 rgba(0, 0, 0, 0.6), inset 0 0 0 rgba(255, 255, 255, 0.02);;
+    transition: box-shadow .10s ease, transform .10s ease;
+}
+
+.actions-icons:hover {
+    box-shadow: 0 0 0 rgba(0, 0, 0, 0.4), 0 0 0 rgba(255, 255, 255, 0.03), inset 4px 4px 10px rgba(0, 0, 0, 0.6), inset -4px -4px 8px rgba(255, 255, 255, 0.02);
+    transform: translateY(1px);
+    transition: box-shadow .10s ease, transform .10s ease;
 }
 </style>

@@ -5,6 +5,7 @@ import router from './router/index';
 import { VueQueryPlugin } from '@tanstack/vue-query';
 import './assets/main.css'
 import VueApexCharts from "vue3-apexcharts";
+import { useAuthStore } from './stores/auth';
 
 const app = createApp(App)
 

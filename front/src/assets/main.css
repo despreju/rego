@@ -54,6 +54,7 @@ button:focus-visible {
 
 html {
   box-sizing: border-box;
+  scrollbar-gutter: stable; /* réserve l'espace de la scrollbar */
 }
 
 *, *::before, *::after {

@@ -3,7 +3,7 @@ import { useAuthStore } from '../stores/auth';
 import Login from '../pages/Login.vue';
 import Home from '../pages/Home.vue';
 import Orders from '../pages/Orders.vue';
-import { check } from '../api/authService';
+import { check } from '../api/authApi';
 
 const routes = [
   {
@@ -50,13 +50,14 @@ router.beforeEach(async (to, _, next) => {
 
   // L'utilisateur n'est pas encore authentifié mais essaie d'accéder à une route protégée
   try {
-    check().then(() => {
-      if (auth.isAuthenticated) {
-        return next();
-      } else {
-        return next('/login');
-      }
-    })
+    await check()
+    const authStore = useAuthStore()
+    authStore.check()
+    if (auth.isAuthenticated) {
+      return next();
+    } else {
+      return next('/login');
+    }
   } catch (error) {
     return next('/login');
   }

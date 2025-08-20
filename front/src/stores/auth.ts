@@ -26,5 +26,13 @@ export const useAuthStore = defineStore('user', {
         this.isAuthenticated = true
         router.push('/')
     },
+    initFromStorage() {
+      const t = localStorage.getItem('rego-token')
+      if (t) {
+        this.isAuthenticated = true
+      } else {
+        this.isAuthenticated = false
+      }
+    }
   },
 })

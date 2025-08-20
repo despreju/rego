@@ -11,34 +11,40 @@
         </div>
         <div class="button">
             <button @click.prevent="onSubmitLogin" v-if="!isLoading">Se connecter</button>
-            <Loading v-else/>
+            <Loading v-else />
+            <div class="error-msg" v-if="apiErr">{{ apiErr.message }}</div>
         </div>
     </form>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import { login } from '../api/authService';
+import { login } from '../api/authApi';
 import { useAuthStore } from '../stores/auth';
 import Loading from '../assets/icons/loading.svg';
-const isLoading = ref(false);
+import { useError } from '../composables/useError'
+import type { ApiError } from '../api/axios';
+import { useToast } from '../composables/useToast'
 
+const { handleApiError } = useError()
+const apiErr = ref<ApiError | null>(null)
+
+const isLoading = ref(false);
 const loginForm = ref({ login: '', password: '' });
 
-const onSubmitLogin = () => {
+const onSubmitLogin = async () => {
     isLoading.value = true;
-    login({
-        login: loginForm.value.login,
-        password: loginForm.value.password
-    }).then(response => {
-        console.log('Login successful:', response);
+    try {
+        const response = await login({ login: loginForm.value.login, password: loginForm.value.password })
+        const { showToast } = useToast()
+        showToast('Connexion réussie', 'success')
         const authStore = useAuthStore()
         authStore.login(response.token)
-    }).catch(error => {
-        console.error('Login failed:', error);
-    }).finally(() => {
-        isLoading.value = false;
-    });
+    } catch (e) {
+        apiErr.value = handleApiError(e)
+    } finally {
+        isLoading.value = false
+    }
 };
 </script>
 
@@ -122,5 +128,10 @@ button {
 button:hover {
     background: #005BB5;
     transition: all 0.125s ease-in-out;
+}
+
+.error-msg {
+    color: #bd0000;
+    margin-top: 1rem;
 }
 </style>

@@ -36,10 +36,14 @@ import orders from '../assets/icons/orders.svg';
 import home from '../assets/icons/home.svg';
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router';
-import { logout } from '../api/authService';
+import { logout } from '../api/authApi';
 import { useAuthStore } from '../stores/auth';
-import { getOrders } from '../api/orderService';
-import { useOrderStore } from '../stores/order';
+import { getOrders } from '../api/orderApi';
+import { useError } from '../composables/useError'
+import type { ApiError } from '../api/axios';
+
+const { handleApiError } = useError()
+const apiErr = ref<ApiError | null>(null)
 
 const isSidebarOpen = ref(false)
 
@@ -68,13 +72,16 @@ const goTo = (path: string) => {
   router.push(path);
 };
 
-onMounted(() => {
-  getOrders().then(orders => {
-    const order = useOrderStore()
-    order.saveOrders(orders);
-  }).catch(error => {
-    console.error('Error fetching orders:', error);
-  });
+const fetchOrders = async () => {
+    try {
+        await getOrders()
+    } catch (e) {
+        apiErr.value = handleApiError(e)
+    }
+};
+
+onMounted(async () => {
+   await fetchOrders()
 });
 </script>
 
@@ -115,7 +122,7 @@ onMounted(() => {
 }
 
 .menu-icon {
-  width: 48px;
+  width: 40px;
   margin: 1.5rem;
 }
 
