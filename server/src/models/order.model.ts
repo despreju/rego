@@ -1,22 +1,56 @@
 import mongoose, { Schema, Document } from 'mongoose';
-import bcrypt from 'bcryptjs';
+
+export interface IComment {
+  user_id: string;
+  commentaire: string;
+  date: Date;
+}
+
+export interface IHistory {
+  user_id: string;
+  action: string;
+  date: Date;
+}
 
 export interface IOrder extends Document {
   date: Date;
   categorie: string;
-  id: number;
+  orderId: number;
   prixClient: number;
   prixAchat: number;
-  commentaire: string;
+  commentaires: IComment[];
+  watch: boolean;
+  history: IHistory[];
 }
+
+const CommentSchema = new Schema<IComment>(
+  {
+    user_id: { type: String, required: false },
+    commentaire: { type: String, default: '' },
+    date: { type: Date, default: Date.now }
+  },
+  { _id: false }
+);
+
+const HistorySchema = new Schema<IHistory>(
+  {
+    user_id: { type: String, required: false },
+    action: { type: String, default: '' },
+    date: { type: Date, default: Date.now }
+  },
+  { _id: false }
+);
 
 const OrderSchema = new Schema<IOrder>({
   date: { type: Date, default: Date.now },
   categorie: { type: String, required: false },
-  id: { type: Number, required: true, unique: true },
+  orderId: { type: Number, required: true, unique: true },
   prixClient: { type: Number, required: false },
   prixAchat: { type: Number, required: false, },
-  commentaire: { type: String, default: '', required: false }
+  commentaires: { type: [CommentSchema], default: [] },
+  watch: { type: Boolean, default: false },
+  history: { type: [HistorySchema], default: [] }
+
 }, { timestamps: true });
 
 export default mongoose.model<IOrder>('Order', OrderSchema);

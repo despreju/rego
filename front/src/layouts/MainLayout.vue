@@ -23,6 +23,7 @@
         </div>
       </div>
       <div class="content">
+        <div style="color: red">user :{{ userStore.user?.email }} - id : {{ userStore.user?._id }}</div>
         <slot />
       </div>
     </div>
@@ -41,6 +42,8 @@ import { useAuthStore } from '../stores/auth';
 import { getOrders } from '../api/orderApi';
 import { useError } from '../composables/useError'
 import type { ApiError } from '../api/axios';
+
+const userStore = useAuthStore();
 
 const { handleApiError } = useError()
 const apiErr = ref<ApiError | null>(null)

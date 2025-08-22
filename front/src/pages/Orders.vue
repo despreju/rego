@@ -1,12 +1,14 @@
 <template>
-    <EditOrderPanel v-if="isNewOrderPanelOpen" @close="isNewOrderPanelOpen = false; orderToEdit = null" :order="orderToEdit" />
+    <EditOrderPanel v-if="isNewOrderPanelOpen" @close="isNewOrderPanelOpen = false; orderToEdit = null"
+        :order="orderToEdit" />
     <DeleteOrderPanel v-if="idOrderToDelete !== null" :orderId="idOrderToDelete" @close="idOrderToDelete = null" />
     <div class="orders-content">
         <div class="topbar">
             <div class="title-page">Commandes</div>
             <div class="actions">
                 <ImportOrders class="action-button" />
-                <Button color="blue" class="action-button" @click="isNewOrderPanelOpen = true" :icon="addIcon" msg="Ajouter une commande"/>
+                <Button color="blue" class="action-button" @click="isNewOrderPanelOpen = true" :icon="addIcon"
+                    msg="Ajouter une commande" />
             </div>
         </div>
         <div class="table-info"><strong>{{ formattedData.length }}</strong> résultats</div>
@@ -24,12 +26,14 @@
         <div v-for="(data, index) in formattedData" :key="index">
             <div class="table-row">
                 <div class="table-row__id">
+                    <warning v-if="data.watch" class="data-watch__warning" />
+                    <success v-else class="data-watch__success" />
                     <money style="width: 40px;" class="w-2 h-2 text-red-500" v-if="data.categorie === 'Commandes'" />
                     <shopify style="width: 48px; fill: white;" class="w-2 h-2 text-red-500"
                         v-else-if="data.categorie === 'Shopify'" />
                     <unknowIcon style="width: 48px; fill: white;" class="w-2 h-2 text-red-500" v-else />
                     <div>
-                        <div>#{{ data.id }}</div>
+                        <div>#{{ data.orderId }}</div>
                         <div class="table-row__date">{{ format(data.date, 'dd/MM/yyyy') }}</div>
                     </div>
                 </div>
@@ -42,11 +46,12 @@
                 <div class="table-row__prixAchat">{{ data.prixAchat }} €</div>
                 <div class="table-row__margeEuro">{{ data.margeEuro }} €</div>
                 <div class="table-row__margePercent">{{ data.margePercent }} %</div>
-                <div class="table-row__commentaire">{{ data.commentaire }}</div>
+                <div class="table-row__commentaire">{{ data.commentaires }}</div>
                 <div class="table-row__data-actions">
                     <Button @click="editOrder(data)" :icon="edit"></Button>
-                    <Button @click="idOrderToDelete = data.id" :icon="deleteIcon"></Button>
-                    <!--<Button :icon="history"></Button>-->
+                    <Button :icon="history"></Button>
+                    <Button :icon="comments"></Button>
+                    <Button color="red" @click="idOrderToDelete = data.orderId" :icon="deleteIcon"></Button>
                 </div>
             </div>
         </div>
@@ -71,15 +76,18 @@ import Tag from '../components/Tag.vue';
 import EditOrderPanel from '../components/EditOrderPanel.vue';
 import DeleteOrderPanel from '../components/DeleteOrderPanel.vue';
 import { format } from 'date-fns'
-import type { TransformedItem } from '../types/index.ts';
+import type { Order, OrderToDisplay } from '../types/index.ts';
 import addIcon from '../assets/icons/add.svg'
 import history from '../assets/icons/history.svg'
+import comments from '../assets/icons/comments.svg'
+import success from '../assets/icons/success.svg'
+import warning from '../assets/icons/warning.svg'
 
 const order = useOrderStore()
 
 // Définition des colonnes
 const columns = ref([
-    { title: '# ID', size: 15, filter: 'down' },
+    { title: 'ID', size: 10, filter: 'down' },
     { title: 'Catégorie', size: 10 },
     { title: 'Prix Client', size: 10, filter: 'none' },
     { title: 'Prix Achat', size: 10, filter: 'none' },
@@ -99,9 +107,9 @@ function filter(index: number) {
     })
 }
 
-const formattedData = computed<TransformedItem[]>(() => {
+const formattedData = computed<OrderToDisplay[]>(() => {
     const columnKeys = [
-        'id',
+        'orderId',
         'categorie',
         'prixClient',
         'prixAchat',
@@ -113,10 +121,10 @@ const formattedData = computed<TransformedItem[]>(() => {
     const list = Array.isArray(order.ordersList) ? order.ordersList.slice() : [];
 
     const activeColumn = columns.value.find(col => col.filter === 'up' || col.filter === 'down');
-    if (!activeColumn) return list as unknown as TransformedItem[];
+    if (!activeColumn) return list as unknown as OrderToDisplay[];
 
     const colIndex = columns.value.indexOf(activeColumn);
-    if (colIndex < 0 || colIndex >= columnKeys.length) return list as unknown as TransformedItem[];
+    if (colIndex < 0 || colIndex >= columnKeys.length) return list as unknown as OrderToDisplay[];
 
     const sortKey = columnKeys[colIndex] as string;
 
@@ -143,15 +151,28 @@ const formattedData = computed<TransformedItem[]>(() => {
         return 0;
     });
 
-    // si TransformedItem diffère du type d'origine, transforme ici ; sinon cast
-    return sorted as unknown as TransformedItem[];
+    return sorted as unknown as OrderToDisplay[];
 });
 
-const orderToEdit = ref<TransformedItem | null>(null);
+const orderToEdit = ref<Order | null>(null);
 
-const editOrder = (data: TransformedItem) => {
-    orderToEdit.value = data;
-    isNewOrderPanelOpen.value = true;
+const editOrder = (data: OrderToDisplay) => {
+  const targetId = String(data.orderId);
+  const matched = order.ordersList.find(o => {
+    if (o._id !== undefined && o._id !== null) {
+      if (String(o._id) === targetId) return true;
+    }
+    if ((o as any).orderId !== undefined && (o as any).orderId !== null) {
+      if (String((o as any).orderId) === targetId) return true;
+    }
+    if ((o as any)._id && String((o as any)._id) === targetId) return true;
+    return false;
+  }) ?? null;
+  if (!matched) {
+    return;
+  }
+  orderToEdit.value = matched as Order;
+  isNewOrderPanelOpen.value = true;
 }
 
 const isNewOrderPanelOpen = ref(false)
@@ -206,18 +227,18 @@ const idOrderToDelete = ref<number | null>(null)
 }
 
 .table-head>div.Commentaire {
-    padding-left: 3.5rem;
-    justify-content: start;
-}
-
-.table-head>div:first-child {
-    padding-left: 3.5rem;
+    padding-left: 5rem;
     justify-content: start;
 }
 
 .table-head>div {
     display: flex;
     justify-content: end;
+}
+
+.table-head>.ID {
+    padding-left: 5rem;
+    justify-content: start !important;
 }
 
 .filter {
@@ -243,9 +264,31 @@ const idOrderToDelete = ref<number | null>(null)
     padding: 1rem 1rem;
 }
 
+.data-watch__success {
+    width: 32px;
+    height: 32px;
+    fill: var(--color-bg);
+    background: var(--color-success);
+    border-radius: 100%;
+    margin-right: 2rem;
+    margin-left: 1rem;
+}
+
+.data-watch__warning {
+    width: 32px;
+    height: 32px;
+    fill: var(--color-bg);
+    background: var(--color-error);
+    border-radius: 100%;
+    margin: 0 1rem;
+    margin-right: 2rem;
+    margin-left: 1rem;
+}
+
 .table-row__id {
     display: flex;
-    width: 15%;
+    width: 10%;
+    align-items: center;
 }
 
 .table-row__id>div {

@@ -2,17 +2,14 @@ import { Request, Response } from 'express';
 import Order from '../models/order.model';
 
 export const save = async (req: Request, res: Response) => {
-  const { date, categorie, id, prixClient, prixAchat, commentaire } = req.body;
+  const { date, categorie, orderId, prixClient, prixAchat, commentaires, watch, history, user_id } = req.body;
   try {
-    if (id < 1) {
-      return res.status(400).json({ message: 'Invalid order ID' });
-    }
-    const order = await Order.create({ date, categorie, id, prixClient, prixAchat, commentaire }) as import('../models/order.model').IOrder;
+    const order = await Order.create({ date, categorie, orderId, prixClient, prixAchat, commentaires: [{date: new Date(), commentaire: commentaires, user_id: user_id}], watch, history: [{date: new Date(), action: history, user_id: user_id}] }) as import('../models/order.model').IOrder;
     res.status(201).json({
-      _id: order._id,
+      id: order.id,
     });
   } catch (error) {
-    console.log({ date, categorie, id, prixClient, prixAchat, commentaire });
+    console.log({ date, categorie, orderId, prixClient, prixAchat, commentaires });
     res.status(500).json({ message: 'Server error' });
   }
 };
@@ -62,7 +59,7 @@ export const remove = async (req: Request, res: Response) => {
 };
 
 export const update = async (req: Request, res: Response) => {
-  const { id, date, categorie, prixClient, prixAchat, commentaire } = req.body
+  const { id, orderId, date, categorie, prixClient, prixAchat, commentaires, watch, history, user_id } = req.body
   if (!id) return res.status(400).json({ message: 'Missing id parameter' })
 
   try {
@@ -83,11 +80,14 @@ export const update = async (req: Request, res: Response) => {
     }
 
     // Applique les champs modifiables
+    if (orderId !== undefined) order.orderId = orderId
     if (date !== undefined) order.date = date
     if (categorie !== undefined) order.categorie = categorie
     if (prixClient !== undefined) order.prixClient = Math.abs(Number(prixClient ?? 0))
     if (prixAchat !== undefined) order.prixAchat = Math.abs(Number(prixAchat ?? 0))
-    if (commentaire !== undefined) order.commentaire = commentaire
+    if (commentaires !== undefined) order.commentaires.push({date: new Date(), commentaire: commentaires, user_id: user_id})
+    if (history !== undefined) order.history.push({date: new Date(), action: history, user_id: user_id})
+    if (watch !== undefined) order.watch = watch
 
     const saved = await order.save()
     return res.status(200).json(saved)
@@ -96,4 +96,3 @@ export const update = async (req: Request, res: Response) => {
     return res.status(500).json({ message: 'Server error' })
   }
 }
-// ...existing

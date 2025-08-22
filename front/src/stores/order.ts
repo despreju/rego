@@ -1,16 +1,7 @@
 import { defineStore } from 'pinia'
-import type { OrderPayload } from '../api/orderApi'
+import type { Order } from '../types';
 
-interface Order {
-  date: Date;
-  categorie: string;
-  id: number;
-  prixClient: number;
-  prixAchat: number;
-  margeEuro: number;
-  margePercent: number;
-  commentaire: string;
-}
+
 
 export const useOrderStore = defineStore('order', {
   state: () => ({
@@ -18,17 +9,19 @@ export const useOrderStore = defineStore('order', {
   }),
 
   actions: {
-    saveOrders(orders: Array<OrderPayload>) {
-
+    saveOrders(orders: Array<Order>) {
       this.ordersList = orders.map(item => ({
+        _id: item._id ?? '',
         date: item.date,
         categorie: getCategorie(item.categorie),
-        id: item.id ?? '',
+        orderId: item.orderId ?? '',
         prixClient: Math.abs(Number(item.prixClient ?? 0)),
         prixAchat: Math.abs(Number(item.prixAchat ?? 0)),
         margeEuro: Number((Math.abs(Number(item.prixClient ?? 0))-Math.abs(Number(item.prixAchat ?? 0))).toFixed(1)),
         margePercent: Number(((Math.abs(Number(item.prixClient ?? 0))-Math.abs(Number(item.prixAchat ?? 0)))/Math.abs(Number(item.prixClient ?? 0))*100).toFixed(1)),
-        commentaire: item.commentaire ?? ''
+        commentaires: item.commentaires ?? [],
+        watch: item.watch ?? false,
+        history: item.history ?? [],
       }));
     },
   },

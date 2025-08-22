@@ -1,4 +1,4 @@
-import { useAuthStore } from '../stores/auth';
+import { useAuthStore, type User } from '../stores/auth';
 import api, { parseApiError } from './axios'
 
 export interface LoginPayload {
@@ -9,7 +9,8 @@ export interface LoginPayload {
 export interface LoginResponse {
   token: string;
   login: string;
-  _id: string;
+  user: User;
+  id: string;
 }
 
 export const login = async (payload: LoginPayload): Promise<LoginResponse> => {
@@ -42,6 +43,8 @@ export const logout = async () => {
 export const check = async () => {
   try {
     const response = await api.get('/auth/verify-token');
+    const auth =  useAuthStore();
+    auth.check({ _id: response.data.user.id, email: response.data.user.login });
     return response.data;
   } catch (e) {
     throw parseApiError(e)

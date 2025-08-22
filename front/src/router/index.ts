@@ -35,6 +35,7 @@ const router = createRouter({
 
 // Navigation guard
 router.beforeEach(async (to, _, next) => {
+  console.log('beforeEach')
   const auth = useAuthStore();
   const requiresAuth = to.meta.requiresAuth;
 
@@ -50,9 +51,9 @@ router.beforeEach(async (to, _, next) => {
 
   // L'utilisateur n'est pas encore authentifié mais essaie d'accéder à une route protégée
   try {
-    await check()
+    const res = await check()
     const authStore = useAuthStore()
-    authStore.check()
+    authStore.check({ _id: res.user._id, email: res.user.login })
     if (auth.isAuthenticated) {
       return next();
     } else {

@@ -2,7 +2,7 @@
     <Panel>
         <div class="panel-title"> {{ title }}</div>
         <div class="new-order-panel__row">
-            <Input class="order-input" label="ID" type="number" placeholder="0000" v-model="formOrder.id" />
+            <Input class="order-input" label="ID" type="number" placeholder="0000" v-model="formOrder.orderId" />
             <span style="width:10%"></span>
             <Input class="order-input" label="Date" type="date" placeholder="jj-mm-aaaa" v-model="dateString" />
         </div>
@@ -15,7 +15,9 @@
         </div>
 
         <Input class="order-input" label="Catégories" type="text" placeholder="" v-model="formOrder.category" />
-        <Input class="order-input" label="Commentaire" type="text" placeholder="" v-model="formOrder.commentary" />
+        <Input class="order-input" label="A surveiller" type="checkbox" v-model="formOrder.watch" />
+        <Input class="order-input" label="Ajouter un commentaire" type="text" placeholder=""
+            v-model="formOrder.commentary" />
         <div style="margin-top: auto;">
             <div class="actions-bar">
                 <Button color="green" @click="onSaveOrder" v-if="!isLoading && !props.order" msg="Ajouter" />
@@ -33,33 +35,38 @@ import Input from '../components/Input.vue';
 import Loading from '../assets/icons/loading.svg';
 import { computed, onMounted, ref } from 'vue'
 import { useOrderStore } from '../stores/order';
+import { useAuthStore } from '../stores/auth';
 import { saveOrder, updateOrder, getOrders } from '../api/orderApi';
 import { useError } from '../composables/useError'
 import type { ApiError } from '../api/axios';
 import Panel from './Panel.vue';
-import type { TransformedItem } from '../types/index.ts';
+import type { Order } from '../types/index.ts';
 import { useToast } from '../composables/useToast.ts';
 
-const props = defineProps<{ order: TransformedItem | null }>()
+const props = defineProps<{ order: Order | null }>()
 
 const emit = defineEmits(['close'])
 const { handleApiError } = useError()
 const apiErr = ref<ApiError | null>(null)
 
 const formOrder = ref<{
-    id: number,
+    id: string,
+    orderId: number,
     clientPrice: number,
     ourPrice: number,
     commentary: string,
     category: string,
-    date: Date
+    date: Date,
+    watch: boolean
 }>({
-    id: 0,
+    id: '',
+    orderId: 0,
     clientPrice: 0,
     ourPrice: 0,
     commentary: '',
     category: 'Commandes',
-    date: new Date()
+    date: new Date(),
+    watch: false
 })
 
 const dateString = computed({
@@ -83,19 +90,24 @@ const fetchOrders = async () => {
     }
 };
 
+const auth = useAuthStore()
 
 const onSaveOrder = async () => {
     isLoading.value = true;
     try {
         await saveOrder({
             id: formOrder.value.id,
+            orderId: formOrder.value.orderId,
             prixClient: formOrder.value.clientPrice,
             prixAchat: formOrder.value.ourPrice,
-            commentaire: formOrder.value.commentary,
+            commentaires: formOrder.value.commentary,
             date: formOrder.value.date,
-            categorie: formOrder.value.category
+            categorie: formOrder.value.category,
+            watch: formOrder.value.watch,
+            user_id: auth.user._id,
+            history: "Création"
         })
-        await fetchOrders()        
+        await fetchOrders()
         const { showToast } = useToast()
         showToast('Commande ajoutée', 'success')
     } catch (e) {
@@ -111,13 +123,17 @@ const onUpdateOrder = async () => {
     try {
         await updateOrder({
             id: formOrder.value.id,
+            orderId: formOrder.value.orderId,
             prixClient: formOrder.value.clientPrice,
             prixAchat: formOrder.value.ourPrice,
-            commentaire: formOrder.value.commentary,
+            commentaires: formOrder.value.commentary,
             date: formOrder.value.date,
-            categorie: formOrder.value.category
+            categorie: formOrder.value.category,
+            watch: formOrder.value.watch,
+            user_id: auth.user?._id,
+            history: getHistoryAction()
         })
-        await fetchOrders()        
+        await fetchOrders()
         const { showToast } = useToast()
         showToast('Commande mise à jour', 'success')
     } catch (e) {
@@ -132,30 +148,38 @@ const order = useOrderStore()
 function getLastId() {
     if (!order.ordersList.length) return 1
     // On récupère le plus grand id numérique de la liste
-    return Math.max(...order.ordersList.map(o => Number(o.id) || 0)) + 1
+    return Math.max(...order.ordersList.map(o => Number(o.orderId) || 0)) + 1
 }
 
 const title = ref<string>('Ajouter une nouvelle commande')
+
+const getHistoryAction = () => {
+    return `Mise à jour`
+}
 
 onMounted(() => {
     if (props.order) {
         title.value = 'Modifier la commande'
         formOrder.value = {
-            id: props.order.id,
+            id: props.order._id,
+            orderId: props.order.orderId,
             clientPrice: props.order.prixClient,
             ourPrice: props.order.prixAchat,
-            commentary: props.order.commentaire,
+            commentary: '',
             category: props.order.categorie,
-            date: new Date(props.order.date)
+            date: new Date(props.order.date),
+            watch: props.order.watch
         };
     } else {
         formOrder.value = {
-            id: getLastId(),
+            id: '',
+            orderId: getLastId(),
             clientPrice: 0,
             ourPrice: 0,
             commentary: '',
             category: 'Commandes',
-            date: new Date()
+            date: new Date(),
+            watch: false
         };
     }
 });

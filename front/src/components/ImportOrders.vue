@@ -11,6 +11,9 @@ import Button from './Button.vue';
 import { ref } from 'vue';
 import { saveOrder } from '../api/orderApi';
 import importIcon from '../assets/icons/import.svg';
+import { useAuthStore } from '../stores/auth';
+
+const auth = useAuthStore()
 
 function handleFileUpload(file: File) {
 
@@ -29,17 +32,19 @@ function handleFileUpload(file: File) {
             saveOrder({
                 date: excelDateToJSDate(row[1]["Date"]) || '',
                 categorie: row[1]["Catégorie"] || '',
-                id: row[1]["ID"] || '',
+                orderId: row[1]["ID"] || 0,
                 prixClient: Math.abs(Number(row[1]["Prix client"])) || 0,
                 prixAchat: Math.abs(Number(row[1]["Prix achat"])) || 0,
-                commentaire: row[1]["Commentaire"] || '',
+                commentaires: row[1]["Commentaire"] || '',
+                watch: false,
+                user_id: auth.user._id,
+                history: "Import"
             }).then(response => {
                 console.log('Order saved successfully:', response);
             }).catch(error => {
                 console.error('Error saving order:', error);
             });
         }
-        console.log(`Import terminé, ${counter.value} lignes traitées.`);
     };
 
     reader.readAsArrayBuffer(file);

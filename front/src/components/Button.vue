@@ -59,6 +59,20 @@ button:hover {
     fill: var(--color-text)
 }
 
+.button-green .button-icon {
+    background: var(--color-success);
+}
+
+.button-red .button-icon,
+.button-blue .button-icon,
+.button-green .button-icon {
+    fill: var(--color-bg);
+}
+
+.button-blue .button-icon {
+    background: var(--color-primary);
+}
+
 .button-text {
     margin: 0 1rem;
 }
