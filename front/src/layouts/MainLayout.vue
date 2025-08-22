@@ -92,8 +92,8 @@ onMounted(async () => {
 
 .sidebar {
   width: auto;
-  background: #1C1B20;
-  color: #F0F1F8;
+  background: var(--color-surface);
+  color: var(--color-text);
   height: 100vh;
   position: fixed;
   transition: width 0.15s ease-in-out;
@@ -107,11 +107,10 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   cursor: pointer;
-  background-color: #1C1B20;
 }
 
 .menu:hover {
-  background-color: rgb(53, 54, 66);
+  background-color: var(--color-surface-hover);
   transition: background-color 0.15s ease-in-out;
 }
 

@@ -6,9 +6,7 @@
             <div class="title-page">Commandes</div>
             <div class="actions">
                 <ImportOrders class="action-button" />
-                <Button class="action-button" @click="isNewOrderPanelOpen = true">
-                    Ajouter une commande
-                </Button>
+                <Button color="blue" class="action-button" @click="isNewOrderPanelOpen = true" :icon="addIcon" msg="Ajouter une commande"/>
             </div>
         </div>
         <div class="table-info"><strong>{{ formattedData.length }}</strong> résultats</div>
@@ -46,12 +44,9 @@
                 <div class="table-row__margePercent">{{ data.margePercent }} %</div>
                 <div class="table-row__commentaire">{{ data.commentaire }}</div>
                 <div class="table-row__data-actions">
-                    <div class="actions-icons" style="margin-right:1rem">
-                        <edit style="width: 32px; height: 32px;"  @click="editOrder(data)"/>
-                    </div>
-                    <div class="actions-icons" @click="idOrderToDelete = data.id">
-                        <deleteIcon style="width: 32px; height: 32px;" />
-                    </div>
+                    <Button @click="editOrder(data)" :icon="edit"></Button>
+                    <Button @click="idOrderToDelete = data.id" :icon="deleteIcon"></Button>
+                    <!--<Button :icon="history"></Button>-->
                 </div>
             </div>
         </div>
@@ -77,6 +72,9 @@ import EditOrderPanel from '../components/EditOrderPanel.vue';
 import DeleteOrderPanel from '../components/DeleteOrderPanel.vue';
 import { format } from 'date-fns'
 import type { TransformedItem } from '../types/index.ts';
+import addIcon from '../assets/icons/add.svg'
+import history from '../assets/icons/history.svg'
+
 const order = useOrderStore()
 
 // Définition des colonnes
@@ -169,7 +167,7 @@ const idOrderToDelete = ref<number | null>(null)
 }
 
 .title-page {
-    color: rgb(228, 227, 227);
+    color: var(--color-text);
     font-weight: bold;
     font-size: 3rem;
     text-align: left;
@@ -180,6 +178,7 @@ const idOrderToDelete = ref<number | null>(null)
     align-items: center;
     margin-left: auto;
     margin-bottom: 1rem;
+    color: var(--color-text);
 }
 
 .action-button {
@@ -189,7 +188,7 @@ const idOrderToDelete = ref<number | null>(null)
 .table-info {
     text-align: left;
     font-style: italic;
-    color: #c7c7c7;
+    color: var(--color-text);
     margin-bottom: 0.25rem;
 }
 
@@ -198,8 +197,8 @@ const idOrderToDelete = ref<number | null>(null)
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: #32323B;
-    color: #c7c7c7;
+    background: var(--color-surface);
+    color: var(--color-text);
     border-radius: 1rem;
     margin-bottom: 0.5rem;
     padding: 1rem 1rem;
@@ -228,7 +227,7 @@ const idOrderToDelete = ref<number | null>(null)
 .filter-icon {
     width: 16px;
     margin-left: 1rem;
-    fill: white;
+    fill: var(--color-text);
 }
 
 .table-row {
@@ -237,8 +236,8 @@ const idOrderToDelete = ref<number | null>(null)
     justify-content: space-between;
     align-items: center;
     padding: 10px;
-    background: #32323B;
-    color: #F0F1F8;
+    background: var(--color-surface);
+    color: var(--color-text);
     border-radius: 1rem;
     margin-bottom: 0.5rem;
     padding: 1rem 1rem;
@@ -258,7 +257,7 @@ const idOrderToDelete = ref<number | null>(null)
 }
 
 .table-row__date {
-    color: #808187;
+    color: var(--color-text);
     font-style: italic;
 }
 
@@ -270,28 +269,28 @@ const idOrderToDelete = ref<number | null>(null)
 
 .table-row__prixClient {
     text-align: right;
-    color: #F0F1F8;
+    color: var(--color-text);
     font-weight: bold;
     width: 10%
 }
 
 .table-row__prixAchat {
     text-align: right;
-    color: #F0F1F8;
+    color: var(--color-text);
     font-weight: bold;
     width: 10%;
 }
 
 .table-row__margeEuro {
     text-align: right;
-    color: #59AD9A;
+    color: var(--color-success);
     font-weight: bold;
     width: 10%;
 }
 
 .table-row__margePercent {
     text-align: right;
-    color: #59AD9A;
+    color: var(--color-success);
     font-weight: bold;
     width: 10%;
 }
@@ -299,7 +298,7 @@ const idOrderToDelete = ref<number | null>(null)
 .table-row__commentaire {
     padding-left: 5rem;
     width: 25%;
-    color: #b2b4bd;
+    color: var(--color-text);
     font-style: italic;
     text-align: left;
 }
@@ -308,7 +307,8 @@ const idOrderToDelete = ref<number | null>(null)
     display: flex;
     width: 10%;
     justify-content: end;
-    color: white;
+    color: var(--color-text);
+    gap: 1rem;
 }
 
 .actions-icons {
@@ -318,12 +318,11 @@ const idOrderToDelete = ref<number | null>(null)
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    border-radius: 50%;
     transition: all .18s ease;
     box-sizing: border-box;
-    background: #2e2e36;
+    background: var(--color-bg);
     border-radius: 12px;
-    box-shadow: 6px 6px 12px rgba(0, 0, 0, 0.4), -6px -6px 12px rgba(255, 255, 255, 0.03), inset 0 0 0 rgba(0, 0, 0, 0.6), inset 0 0 0 rgba(255, 255, 255, 0.02);;
+    box-shadow: 6px 6px 12px rgba(0, 0, 0, 0.4), -6px -6px 12px rgba(255, 255, 255, 0.03), inset 0 0 0 rgba(0, 0, 0, 0.6), inset 0 0 0 rgba(255, 255, 255, 0.02);
     transition: box-shadow .10s ease, transform .10s ease;
 }
 

@@ -123,7 +123,7 @@ const chartOptions = computed(() => ({
 }
 
 .title-page {
-  color: rgb(228, 227, 227);
+  color: var(--color-text);
   font-weight: bold;
   font-size: 3rem;
   text-align: left;
@@ -149,7 +149,7 @@ const chartOptions = computed(() => ({
   flex-direction: column;
   align-items: flex-start;
   flex: 1;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--color-surface);
   border-radius: 8px;
   padding: 2rem;
   margin-right: 4rem;
@@ -157,7 +157,7 @@ const chartOptions = computed(() => ({
 
 .stats-curve {
   flex: 1;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--color-surface);
   border-radius: 8px;
   padding: 2rem;
 }

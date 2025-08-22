@@ -1,7 +1,7 @@
 <template>
     <div>
         <input ref="fileInput" type="file" class="hidden" @change="handleFileChange" />
-        <Button type="file" @click="triggerFileInput" accept=".xlsx, .xls">Importer un fichier (xlsx)</Button>
+        <Button color="blue" type="file" @click="triggerFileInput" accept=".xlsx, .xls" :icon="importIcon" msg="Importer un fichier (xlsx)" />
     </div>
 </template>
 
@@ -10,7 +10,7 @@ import * as XLSX from 'xlsx';
 import Button from './Button.vue';
 import { ref } from 'vue';
 import { saveOrder } from '../api/orderApi';
-
+import importIcon from '../assets/icons/import.svg';
 
 function handleFileUpload(file: File) {
 

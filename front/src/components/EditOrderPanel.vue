@@ -18,13 +18,10 @@
         <Input class="order-input" label="Commentaire" type="text" placeholder="" v-model="formOrder.commentary" />
         <div style="margin-top: auto;">
             <div class="actions-bar">
-                <Button color="green" @click="onSaveOrder" v-if="!isLoading && !props.order">Ajouter</Button>
-                <Button color="green" @click="onUpdateOrder" v-if="!isLoading && props.order">Mettre à jour</Button>
-                <Button color="grey" @click="emit('close')" v-if="!isLoading">Annuler</Button>
+                <Button color="green" @click="onSaveOrder" v-if="!isLoading && !props.order" msg="Ajouter" />
+                <Button color="green" @click="onUpdateOrder" v-if="!isLoading && props.order" msg="Mettre à jour" />
+                <Button color="grey" @click="emit('close')" v-if="!isLoading" msg="Annuler" />
                 <Loading v-else />
-            </div>
-            <div>
-                <div class="error-msg" v-if="apiErr">{{ apiErr.message }}</div>
             </div>
         </div>
     </Panel>
@@ -41,6 +38,7 @@ import { useError } from '../composables/useError'
 import type { ApiError } from '../api/axios';
 import Panel from './Panel.vue';
 import type { TransformedItem } from '../types/index.ts';
+import { useToast } from '../composables/useToast.ts';
 
 const props = defineProps<{ order: TransformedItem | null }>()
 
@@ -97,7 +95,9 @@ const onSaveOrder = async () => {
             date: formOrder.value.date,
             categorie: formOrder.value.category
         })
-        await fetchOrders()
+        await fetchOrders()        
+        const { showToast } = useToast()
+        showToast('Commande ajoutée', 'success')
     } catch (e) {
         apiErr.value = handleApiError(e)
     } finally {
@@ -117,7 +117,9 @@ const onUpdateOrder = async () => {
             date: formOrder.value.date,
             categorie: formOrder.value.category
         })
-        await fetchOrders()
+        await fetchOrders()        
+        const { showToast } = useToast()
+        showToast('Commande mise à jour', 'success')
     } catch (e) {
         apiErr.value = handleApiError(e)
     } finally {
@@ -167,7 +169,7 @@ onMounted(() => {
 
 .panel-title {
     font-size: 1.5rem;
-    color: rgb(228, 227, 227);
+    color: var(--color-text);
     margin-bottom: 3rem;
 }
 
@@ -178,10 +180,5 @@ onMounted(() => {
 
 .order-input {
     margin-bottom: 2rem;
-}
-
-.error-msg {
-    color: #bd0000;
-    margin-top: 1rem;
 }
 </style>

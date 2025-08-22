@@ -6,8 +6,8 @@
         </div>
         <div>
             <div class="actions-bar">
-                <Button color="red" @click="onDeleteOrder" v-if="!isLoading">Supprimer</Button>
-                <Button color="grey" @click="close" v-if="!isLoading">Annuler</Button>
+                <Button color="red" @click="onDeleteOrder" v-if="!isLoading" msg="Supprimer" />
+                <Button color="grey" @click="close" v-if="!isLoading" msg="Annuler" />
                 <Loading v-else />
             </div>
         </div>
@@ -18,10 +18,11 @@
 import Button from '../components/Button.vue';
 import Loading from '../assets/icons/loading.svg';
 import { ref, onMounted, onBeforeUnmount } from 'vue';
-import { removeOrder } from '../api/orderApi';
+import { getOrders, removeOrder } from '../api/orderApi';
 import { useError } from '../composables/useError'
 import type { ApiError } from '../api/axios';
 import Panel from './Panel.vue';
+import { useToast } from '../composables/useToast';
 
 const { handleApiError } = useError()
 const apiErr = ref<ApiError | null>(null)
@@ -38,15 +39,25 @@ function close() {
     emit('close');
 }
 
+const fetchOrders = async () => {
+    try {
+        await getOrders()
+    } catch (e) {
+        apiErr.value = handleApiError(e)
+    }
+};
+
 const onDeleteOrder = async () => {
     try {
         isLoading.value = true;
         await removeOrder(props.orderId)
-        emit('close');
-        isLoading.value = false
+        await fetchOrders()        
+        const { showToast } = useToast()
+        showToast('Commande supprimée', 'success')
     } catch (e) {
         apiErr.value = handleApiError(e)
     } finally {
+        emit('close');
         isLoading.value = false
     }
 };
@@ -64,13 +75,13 @@ onMounted(() => {
 
 <style scoped>
 .message {
-    color: #e7e7e7;
+    color: var(--color-text);
     font-size: 1.25rem;
 }
 
 .order-id {
-    color: #fff;
-    background: rgba(255, 255, 255, 0.03);
+    color: var(--color-text);
+    background: var(--color-surface);
     padding: 0.3rem 0.3rem;
     border-radius: 6px;
 }

@@ -7,7 +7,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { onBeforeUnmount, onMounted } from 'vue'
 
 onMounted(() => {
     const prev = document.body.style.overflow;
@@ -33,7 +33,7 @@ onMounted(() => {
 }
 
 .panel {
-    background-color: #1C1B20;
+    background-color: var(--color-bg);
     border-radius: 12px;
     padding: 1.75rem 2rem;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);

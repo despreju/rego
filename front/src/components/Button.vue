@@ -1,68 +1,65 @@
 <template>
     <button :class="[colorClass]">
-        <slot />
+        <component v-if="props.icon" :is="props.icon" class="button-icon" aria-hidden="true" />
+        <div v-if="msg" class="button-text">{{ msg }}</div>
     </button>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, type Component } from 'vue'
 
-const props = defineProps<{ color?: string }>()
+const props = defineProps<{ color?: string; icon?: Component | string; msg?: string }>()
 
 const colorClass = computed(() => {
-    return `button button--${props.color ?? 'black'}`
+    return `button button-${props.color ?? 'black'}`
 })
 </script>
 
 <style scoped>
 button {
     all: unset;
-    display: inline-block;
-    padding: 0.75rem 1.5rem;
-    color: white;
-    border: none;
-    border-radius: 4px;
+    padding: 0.5rem;
+    height: 3rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     cursor: pointer;
-    text-align: center;
-    transition: background-color 0.15s ease-in-out;
+    border-radius: 50%;
+    transition: all .18s ease;
+    box-sizing: border-box;
+    background: var(--color-surface);
+    border-radius: 12px;
+    box-shadow: 6px 6px 12px rgba(0, 0, 0, 0.4), -6px -6px 12px rgba(255, 255, 255, 0.03), inset 0 0 0 rgba(0, 0, 0, 0.6), inset 0 0 0 rgba(255, 255, 255, 0.02);
+    transition: box-shadow .10s ease, transform .10s ease;
+    color: var(--color-text);
 }
 
-.button:hover {
-    transition: background-color 0.15s ease-in-out;
+button:hover {
+    box-shadow: 0 0 0 rgba(0, 0, 0, 0.4), 0 0 0 rgba(255, 255, 255, 0.03), inset 4px 4px 10px rgba(0, 0, 0, 0.6), inset -4px -4px 8px rgba(255, 255, 255, 0.02);
+    transform: translateY(1px);
+    transition: box-shadow .10s ease, transform .10s ease;
 }
 
-.button--blue {
-    background-color: #0174DC;
-}
-.button--blue:hover {
-    background-color: #005BB5;
+.button-green {
+    background: var(--color-success);
 }
 
-.button--black {
-    background-color: #1C1B20;
-}
-.button--black:hover {
-    background-color: #121114;
+.button-red {
+    background: var(--color-error);
 }
 
-.button--red {
-    background-color: #b10808;
-}
-.button--red:hover {
-    background-color: #950606;
+.button-blue {
+    background: var(--color-primary);
 }
 
-.button--green {
-    background-color: #008000;
-}
-.button--green:hover {
-    background-color: #006d00;
+.button-icon {
+    width: 32px;
+    display: inline-block;
+    vertical-align: middle;
+    fill: var(--color-text)
 }
 
-.button--grey {
-    background-color: #272831;
-}
-.button--grey:hover {
-    background-color: #060506;
+.button-text {
+    margin: 0 1rem;
 }
 </style>
