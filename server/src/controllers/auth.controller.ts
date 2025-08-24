@@ -36,8 +36,7 @@ export const login = async (req: Request, res: Response) => {
       return res.status(401).json({ message: 'Invalid credentials' });
 
     res.status(200).json({
-      id: user._id,
-      login: user.login,
+      user,
       token: generateToken((user._id as string).toString())
     });
   } catch (error) {
@@ -54,7 +53,6 @@ export const check = async (req: AuthRequest, res: Response) => {
   try {
     const user = await User.findById(req.user.id).select('-password -__v');
     if (!user) return res.status(404).json({ message: 'User not found' });
-    console.log('check user:', user);
     return res.status(200).json({ user });
   } catch (error) {
     return res.status(500).json({ message: 'Server error' });

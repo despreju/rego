@@ -2,6 +2,11 @@
     <EditOrderPanel v-if="isNewOrderPanelOpen" @close="isNewOrderPanelOpen = false; orderToEdit = null"
         :order="orderToEdit" />
     <DeleteOrderPanel v-if="idOrderToDelete !== null" :orderId="idOrderToDelete" @close="idOrderToDelete = null" />
+    <CommentsPanel v-if="openCommentsPanel !== null"
+        :order="formattedData.find(order => order._id === openCommentsPanel)" @close="openCommentsPanel = null" />
+    <HistoryPanel v-if="openHistoryPanel !== null"
+        :order="formattedData.find(order => order._id === openHistoryPanel)" @close="openHistoryPanel = null" />
+
     <div class="orders-content">
         <div class="topbar">
             <div class="title-page">Commandes</div>
@@ -46,12 +51,15 @@
                 <div class="table-row__prixAchat">{{ data.prixAchat }} €</div>
                 <div class="table-row__margeEuro">{{ data.margeEuro }} €</div>
                 <div class="table-row__margePercent">{{ data.margePercent }} %</div>
-                <div class="table-row__commentaire">{{ data.commentaires }}</div>
                 <div class="table-row__data-actions">
                     <Button @click="editOrder(data)" :icon="edit"></Button>
-                    <Button :icon="history"></Button>
-                    <Button :icon="comments"></Button>
-                    <Button color="red" @click="idOrderToDelete = data.orderId" :icon="deleteIcon"></Button>
+                    <Button @click="openHistoryPanel = data._id" :icon="history">
+                        <Badge type="primary">{{ data.history?.length }}</Badge>
+                    </Button>
+                    <Button @click="openCommentsPanel = data._id" :icon="comments">
+                        <Badge type="primary">{{ data.commentaires?.length }}</Badge>
+                    </Button>
+                    <Button color="red" @click="idOrderToDelete = data._id" :icon="deleteIcon"></Button>
                 </div>
             </div>
         </div>
@@ -62,6 +70,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import ImportOrders from '../components/ImportOrders.vue';
+import CommentsPanel from '../components/CommentsPanel.vue';
 import { useOrderStore } from '../stores/order'
 import money from '../assets/icons/money.svg'
 import arrow_up from '../assets/icons/arrow_up.svg'
@@ -76,25 +85,26 @@ import Tag from '../components/Tag.vue';
 import EditOrderPanel from '../components/EditOrderPanel.vue';
 import DeleteOrderPanel from '../components/DeleteOrderPanel.vue';
 import { format } from 'date-fns'
-import type { Order, OrderToDisplay } from '../types/index.ts';
+import type { Order } from '../types/index.ts';
 import addIcon from '../assets/icons/add.svg'
 import history from '../assets/icons/history.svg'
 import comments from '../assets/icons/comments.svg'
 import success from '../assets/icons/success.svg'
 import warning from '../assets/icons/warning.svg'
+import Badge from '../components/Badge.vue'
+import HistoryPanel from '../components/HistoryPanel.vue';
 
 const order = useOrderStore()
 
 // Définition des colonnes
 const columns = ref([
-    { title: 'ID', size: 10, filter: 'down' },
-    { title: 'Catégorie', size: 10 },
-    { title: 'Prix Client', size: 10, filter: 'none' },
-    { title: 'Prix Achat', size: 10, filter: 'none' },
-    { title: 'Marge €', size: 10, filter: 'none' },
-    { title: 'Marge %', size: 10, filter: 'none' },
-    { title: 'Commentaire', size: 25 },
-    { title: '', size: 10 },
+    { title: 'ID', size: 15, filter: 'down' },
+    { title: 'CATEGORIE', size: 10 },
+    { title: 'PRIX CLIENT', size: 10, filter: 'none' },
+    { title: 'PRIX ACHAT', size: 10, filter: 'none' },
+    { title: 'MARGE €', size: 10, filter: 'none' },
+    { title: 'MARGE %', size: 10, filter: 'none' },
+    { title: '', size: 30 },
 ])
 
 function filter(index: number) {
@@ -107,7 +117,7 @@ function filter(index: number) {
     })
 }
 
-const formattedData = computed<OrderToDisplay[]>(() => {
+const formattedData = computed<Order[]>(() => {
     const columnKeys = [
         'orderId',
         'categorie',
@@ -121,10 +131,10 @@ const formattedData = computed<OrderToDisplay[]>(() => {
     const list = Array.isArray(order.ordersList) ? order.ordersList.slice() : [];
 
     const activeColumn = columns.value.find(col => col.filter === 'up' || col.filter === 'down');
-    if (!activeColumn) return list as unknown as OrderToDisplay[];
+    if (!activeColumn) return list as unknown as Order[];
 
     const colIndex = columns.value.indexOf(activeColumn);
-    if (colIndex < 0 || colIndex >= columnKeys.length) return list as unknown as OrderToDisplay[];
+    if (colIndex < 0 || colIndex >= columnKeys.length) return list as unknown as Order[];
 
     const sortKey = columnKeys[colIndex] as string;
 
@@ -151,38 +161,40 @@ const formattedData = computed<OrderToDisplay[]>(() => {
         return 0;
     });
 
-    return sorted as unknown as OrderToDisplay[];
+    return sorted as unknown as Order[];
 });
 
 const orderToEdit = ref<Order | null>(null);
 
-const editOrder = (data: OrderToDisplay) => {
-  const targetId = String(data.orderId);
-  const matched = order.ordersList.find(o => {
-    if (o._id !== undefined && o._id !== null) {
-      if (String(o._id) === targetId) return true;
+const editOrder = (data: Order) => {
+    const targetId = String(data.orderId);
+    const matched = order.ordersList.find(o => {
+        if (o._id !== undefined && o._id !== null) {
+            if (String(o._id) === targetId) return true;
+        }
+        if ((o as any).orderId !== undefined && (o as any).orderId !== null) {
+            if (String((o as any).orderId) === targetId) return true;
+        }
+        if ((o as any)._id && String((o as any)._id) === targetId) return true;
+        return false;
+    }) ?? null;
+    if (!matched) {
+        return;
     }
-    if ((o as any).orderId !== undefined && (o as any).orderId !== null) {
-      if (String((o as any).orderId) === targetId) return true;
-    }
-    if ((o as any)._id && String((o as any)._id) === targetId) return true;
-    return false;
-  }) ?? null;
-  if (!matched) {
-    return;
-  }
-  orderToEdit.value = matched as Order;
-  isNewOrderPanelOpen.value = true;
+    orderToEdit.value = matched as Order;
+    isNewOrderPanelOpen.value = true;
 }
 
 const isNewOrderPanelOpen = ref(false)
-const idOrderToDelete = ref<number | null>(null)
+const idOrderToDelete = ref<string | null>(null)
+const openCommentsPanel = ref<string | null>(null)
+const openHistoryPanel = ref<string | null>(null)
 </script>
 
 <style scoped>
 .topbar {
     display: flex;
-    height: 10rem;
+    height: 7rem;
     align-items: end;
     margin-bottom: 1rem;
 }
@@ -219,7 +231,7 @@ const idOrderToDelete = ref<number | null>(null)
     justify-content: space-between;
     align-items: center;
     background: var(--color-surface);
-    color: var(--color-text);
+    color: var(--color-text-secondary);
     border-radius: 1rem;
     margin-bottom: 0.5rem;
     padding: 1rem 1rem;
@@ -287,7 +299,7 @@ const idOrderToDelete = ref<number | null>(null)
 
 .table-row__id {
     display: flex;
-    width: 10%;
+    width: 15%;
     align-items: center;
 }
 
@@ -348,10 +360,10 @@ const idOrderToDelete = ref<number | null>(null)
 
 .table-row__data-actions {
     display: flex;
-    width: 10%;
+    width: 30%;
     justify-content: end;
     color: var(--color-text);
-    gap: 1rem;
+    gap: 2rem;
 }
 
 .actions-icons {

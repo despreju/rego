@@ -1,15 +1,23 @@
-export interface OrderToDisplay {
-  id: string;
-  date: string;
-  categorie: string;
-  orderId: number;
-  prixClient: number;
-  prixAchat: number;
-  margeEuro: number;
-  margePercent: number;
-  commentaires: Array<Commentaire>;
-  history: Array<History>;
-  watch: boolean
+export interface auth {
+  isAuthenticated: boolean
+}
+
+export type User = {
+  _id: string;
+  email: string;
+  login: string;
+  name: string;
+  firstname: string;
+};
+
+export interface LoginPayload {
+  login: string;
+  password: string;
+}
+
+export interface LoginResponse {
+  token: string;
+  user: User;
 }
 
 export interface Order {
@@ -19,27 +27,27 @@ export interface Order {
   orderId: number;
   prixClient: number;
   prixAchat: number;
-  margeEuro: number;
-  margePercent: number;
-  commentaires?: Array<Commentaire>;
+  margeEuro?: number;
+  margePercent?: number;
+  commentaires: Array<Commentaire>;
   watch: boolean;
-  history?: Array<History>;
+  history: Array<History>;
 }
 
 export interface History {
   date: Date;
-  user_id: string;
+  user?: User;
   action: string;
 }
 
 export interface Commentaire {
   date?: Date;
-  user_id?: string;
+  user?: User;
   commentaire: string;
 }
 
 export interface OrderPayload {
-  id?: string;
+  _id?: string;
   date: Date;
   categorie: string;
   orderId: number;

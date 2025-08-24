@@ -1,15 +1,7 @@
 import { defineStore } from 'pinia'
 import { setAccessToken, removeAccessToken } from '../utils/auth';
 import router from '../router';
-
-export interface auth {
-  isAuthenticated: boolean
-}
-
-export type User = {
-  _id: string;
-  email: string;
-};
+import type { User } from '../types';
 
 export const useAuthStore = defineStore('user', {
   state: () => ({

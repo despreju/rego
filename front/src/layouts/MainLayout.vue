@@ -1,41 +1,48 @@
 <template>
   <div class="main-layout">
     <div>
-      <div :class="sidebarClass">
-        <div class="menu">
-          <burgerMenu class="menu-icon" @click="toggleSidebar" />
+      <div class="top-bar">
+        <div class="app-title">
+          <img src="../assets/rego.png" alt="logo" class="logo"> | Order Management
         </div>
-        <div class="menu" @click="goTo('/home')">
-          <home class="menu-icon" />
-          <div class="menu-title">Accueil</div>
+        <div class="user">
+          <div class="user-logo">{{ userStore.user.firstname[0] + userStore.user.name[0] }}</div>
+          <div class="user-profile">{{ userStore.user.firstname + ' ' + userStore.user.name }}</div>
         </div>
-        <!-- <div class="menu">
+      </div>
+      <div class="wrapper">
+        <div class="sidebar">
+          <div class="sidebar-title">MENU PRINCIPAL</div>
+          <div class="menu" @click="goTo('/home')">
+            <home class="menu-icon" />
+            <div class="menu-title">Accueil</div>
+          </div>
+          <!-- <div class="menu">
           <users class="menu-icon" />
           <div class="menu-title">Utilisateurs</div>
         </div> -->
-        <div class="menu" @click="goTo('/orders')">
-          <orders class="menu-icon" />
-          <div class="menu-title">Commandes</div>
+          <div class="menu" @click="goTo('/orders')">
+            <orders class="menu-icon" />
+            <div class="menu-title">Commandes</div>
+          </div>
+          <div class="menu" @click="onSubmitLogout">
+            <profile class="menu-icon" />
+            <div class="menu-title">Profile</div>
+          </div>
         </div>
-        <div class="menu" @click="onSubmitLogout">
-          <profile class="menu-icon" />
-          <div class="menu-title">Profile</div>
+        <div class="content">
+          <slot />
         </div>
-      </div>
-      <div class="content">
-        <div style="color: red">user :{{ userStore.user?.email }} - id : {{ userStore.user?._id }}</div>
-        <slot />
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import burgerMenu from '../assets/icons/burgerMenu.svg';
 import profile from '../assets/icons/profile.svg';
 import orders from '../assets/icons/orders.svg';
 import home from '../assets/icons/home.svg';
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router';
 import { logout } from '../api/authApi';
 import { useAuthStore } from '../stores/auth';
@@ -47,20 +54,6 @@ const userStore = useAuthStore();
 
 const { handleApiError } = useError()
 const apiErr = ref<ApiError | null>(null)
-
-const isSidebarOpen = ref(false)
-
-const sidebarClass = computed(() => ({
-  sidebar: true,
-  '-open': isSidebarOpen.value
-}))
-
-const toggleSidebar = () => {
-  const sidebar = document.querySelector('.sidebar');
-  if (sidebar) {
-    sidebar.classList.toggle('-open');
-  }
-};
 
 const router = useRouter();
 
@@ -76,15 +69,15 @@ const goTo = (path: string) => {
 };
 
 const fetchOrders = async () => {
-    try {
-        await getOrders()
-    } catch (e) {
-        apiErr.value = handleApiError(e)
-    }
+  try {
+    await getOrders()
+  } catch (e) {
+    apiErr.value = handleApiError(e)
+  }
 };
 
 onMounted(async () => {
-   await fetchOrders()
+  await fetchOrders()
 });
 </script>
 
@@ -94,16 +87,24 @@ onMounted(async () => {
 }
 
 .sidebar {
-  width: auto;
+  width: 16rem;
   background: var(--color-surface);
   color: var(--color-text);
   height: 100vh;
   position: fixed;
-  transition: width 0.15s ease-in-out;
   display: flex;
   flex-direction: column;
   overflow: hidden;
   z-index: 10;
+}
+
+.sidebar-title {
+  margin-top: 2rem;
+  margin-left: 1.2rem;
+  margin-bottom: 1rem;
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  text-align: left;
 }
 
 .menu {
@@ -117,34 +118,72 @@ onMounted(async () => {
   transition: background-color 0.15s ease-in-out;
 }
 
-.-open>div.menu>.menu-title {
-  width: 162px;
-  transition: width 0.15s ease-in-out;
-  text-align: left;
-}
-
 .menu-icon {
-  width: 40px;
-  margin: 1.5rem;
+  width: 32px;
+  margin: 1rem;
 }
 
 .menu-title {
-  width: 0;
-  overflow: hidden;
-  transition: width 0.15s ease-in-out;
   white-space: nowrap;
   text-align: left;
 }
 
-.sidebar>div:last-child {
-  margin-top: auto;
+.top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--color-surface);
+  color: var(--color-text);
+  height: 4rem;
+  box-shadow: 0px 1px 3px 0px var(--color-surface);
+  z-index: 50;
+  position: relative;
+}
+
+.app-title {
+  color: var(--color-text);
+  font-weight: bold;
+  margin-left: 0.5rem;
+  display: flex;
+  align-items: center;
+}
+
+.logo {
+  width: 70px;
+}
+
+.wrapper {
+  z-index: 2;
 }
 
 .content {
-  margin-left: 96px;
+  margin-left: 16rem;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 0 5%;
+  padding: 0 5rem;
+}
+
+.user {
+  display: flex;
+  align-items: center;
+}
+
+.user-logo {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background: var(--color-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-bg);
+  font-weight: bold;
+  margin-right: 1.5rem;
+}
+
+.user-profile {
+  color: var(--color-text);
+  margin-right: 2rem;
 }
 </style>

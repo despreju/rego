@@ -27,7 +27,7 @@ export const getOrders = async () => {
   }
 };
 
-export const removeOrder = async (id: number) => {
+export const removeOrder = async (id: string) => {
   try {
     await api.delete(`/order/remove/${id}`);
   } catch (e) {

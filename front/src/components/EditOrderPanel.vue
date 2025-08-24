@@ -96,7 +96,7 @@ const onSaveOrder = async () => {
     isLoading.value = true;
     try {
         await saveOrder({
-            id: formOrder.value.id,
+            _id: formOrder.value.id,
             orderId: formOrder.value.orderId,
             prixClient: formOrder.value.clientPrice,
             prixAchat: formOrder.value.ourPrice,
@@ -122,7 +122,7 @@ const onUpdateOrder = async () => {
     isLoading.value = true;
     try {
         await updateOrder({
-            id: formOrder.value.id,
+            _id: formOrder.value.id,
             orderId: formOrder.value.orderId,
             prixClient: formOrder.value.clientPrice,
             prixAchat: formOrder.value.ourPrice,

@@ -1,23 +1,25 @@
 <template>
-    <button :class="[colorClass]">
+    <button :disabled="props.disabled" :class="[colorClass]">
         <component v-if="props.icon" :is="props.icon" class="button-icon" aria-hidden="true" />
         <div v-if="msg" class="button-text">{{ msg }}</div>
+        <slot />
     </button>
 </template>
 
 <script setup lang="ts">
 import { computed, type Component } from 'vue'
 
-const props = defineProps<{ color?: string; icon?: Component | string; msg?: string }>()
+const props = defineProps<{ color?: string; icon?: Component | string; msg?: string; disabled?: boolean }>()
 
 const colorClass = computed(() => {
-    return `button button-${props.color ?? 'black'}`
+    return `button button-${props.color ?? 'black'} button-${props.disabled ? 'disabled' : ''}`
 })
 </script>
 
 <style scoped>
 button {
     all: unset;
+    position: relative;
     padding: 0.5rem;
     height: 3rem;
     display: inline-flex;
@@ -76,4 +78,9 @@ button:hover {
 .button-text {
     margin: 0 1rem;
 }
+
+.button-disabled {
+    pointer-events: none ;
+}
+
 </style>

@@ -1,22 +1,28 @@
 <template>
     <form class="login-form">
+        <img src="../assets/rego.png" alt="logo">
         <div class="login-title">Bienvenue !</div>
-        <div class="input">
-            <Input dark class="login-input" type="text" label="Identifiant" v-model="loginForm.login" required placeholder="Identifiant" />
+        <div class="login-subtitle">Entre votre login et votre mot de passe pour entrer dans votre espace de travail.
         </div>
         <div class="input">
-            <Input dark class="login-input" type="password" label="Mot de passe" v-model="loginForm.password" required placeholder="Mot de passe" />
+            <Input dark class="login-input" type="text" label="Identifiant" v-model="loginForm.login" required
+                placeholder="Identifiant" />
+        </div>
+        <div class="input">
+            <Input dark class="login-input" type="password" label="Mot de passe" v-model="loginForm.password" required
+                placeholder="Mot de passe" />
         </div>
         <div class="button">
-            <Button color="blue" @click.prevent="onSubmitLogin" v-if="!isLoading" msg="Se connecter"/>
+            <Button color="blue" @click.prevent="onSubmitLogin" v-if="!isLoading" msg="Se connecter" style="width: 100%;"/>
             <Loading v-else />
         </div>
+        <!--<Button color="blue" @click.prevent="onSubmitSignin" v-if="!isLoading" msg="Se connecter"/>-->
     </form>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import { login } from '../api/authApi';
+import { login, signin } from '../api/authApi';
 import { useAuthStore } from '../stores/auth';
 import Loading from '../assets/icons/loading.svg';
 import { useError } from '../composables/useError'
@@ -39,7 +45,20 @@ const onSubmitLogin = async () => {
         showToast('Connexion réussie', 'success')
         const authStore = useAuthStore()
         console.log(response)
-        authStore.login(response.token, { _id: response.id, email: response.login })
+        authStore.login(response.token, response.user)
+    } catch (e) {
+        apiErr.value = handleApiError(e)
+    } finally {
+        isLoading.value = false
+    }
+};
+
+const onSubmitSignin = async () => {
+    try {
+        const response = await signin({ login: 'jdz', password: 're86K1ng@' })
+        const authStore = useAuthStore()
+        console.log(response)
+        authStore.login(response.token, response.user)
     } catch (e) {
         apiErr.value = handleApiError(e)
     } finally {
@@ -60,12 +79,24 @@ const onSubmitLogin = async () => {
 }
 
 .login-title {
-    margin-bottom: 4rem;
+    margin-top: 2rem;
     color: var(--color-text);
     font-size: 2rem;
 }
 
-.login-input {
+.login-subtitle {
     margin-bottom: 4rem;
+    color: var(--color-text-secondary);
+    font-size: 0.9rem;
+}
+
+
+.login-input {
+    margin-bottom: 2rem;
+}
+
+.button {
+    width: 100%;
+    margin-top: 2rem;
 }
 </style>

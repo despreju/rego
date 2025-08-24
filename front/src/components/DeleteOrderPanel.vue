@@ -28,7 +28,7 @@ const { handleApiError } = useError()
 const apiErr = ref<ApiError | null>(null)
 
 const props = defineProps<{
-    orderId: number;
+    orderId: string;
 }>();
 const emit = defineEmits(['close']);
 

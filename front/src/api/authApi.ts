@@ -44,7 +44,7 @@ export const check = async () => {
   try {
     const response = await api.get('/auth/verify-token');
     const auth =  useAuthStore();
-    auth.check({ _id: response.data.user.id, email: response.data.user.login });
+    auth.check(response.data.user);
     return response.data;
   } catch (e) {
     throw parseApiError(e)
