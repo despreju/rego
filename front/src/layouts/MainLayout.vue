@@ -7,7 +7,7 @@
         </div>
         <div class="user">
           <div class="user-logo">{{ userStore.user.firstname[0] + userStore.user.name[0] }}</div>
-          <div class="user-profile">{{ userStore.user.firstname + ' ' + userStore.user.name }}</div>
+          <div class="user-profile" @click="onSubmitLogout">{{ userStore.user.firstname + ' ' + userStore.user.name }}</div>
         </div>
       </div>
       <div class="wrapper">
@@ -25,10 +25,6 @@
             <orders class="menu-icon" />
             <div class="menu-title">Commandes</div>
           </div>
-          <div class="menu" @click="onSubmitLogout">
-            <profile class="menu-icon" />
-            <div class="menu-title">Profile</div>
-          </div>
         </div>
         <div class="content">
           <slot />
@@ -39,7 +35,6 @@
 </template>
 
 <script setup lang="ts">
-import profile from '../assets/icons/profile.svg';
 import orders from '../assets/icons/orders.svg';
 import home from '../assets/icons/home.svg';
 import { ref, onMounted } from 'vue'

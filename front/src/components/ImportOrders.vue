@@ -1,7 +1,8 @@
 <template>
     <div>
         <input ref="fileInput" type="file" class="hidden" @change="handleFileChange" />
-        <Button color="blue" type="file" @click="triggerFileInput" accept=".xlsx, .xls" :icon="importIcon" msg="Importer un fichier (xlsx)" />
+        <Button color="blue" type="file" @click="triggerFileInput" accept=".xlsx, .xls" :icon="importIcon"
+            msg="Importer un fichier (xlsx)" />
     </div>
 </template>
 
@@ -25,17 +26,25 @@ function handleFileUpload(file: File) {
         const sheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[sheetName];
         const rows = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
-        let counter = ref(0);
 
-        for (const row of (rows as any[]).entries()) {
-            counter.value++;
+        for (const [, rowObj] of (rows as any[]).entries()) {
+
+            // nettoyer l'ID : enlever tous les '#' et les espaces autour
+            const rawId = String(rowObj["ID"] ?? '');
+            const cleanIdStr = rawId.replace(/#/g, '').trim();
+            const orderId = Number(cleanIdStr) || 0;
+
+            // gérer la date (Excel serial -> Date ou string convertible)
+            const rawDate = rowObj["Date"];
+            const date = typeof rawDate === 'number' ? excelDateToJSDate(rawDate) : (rawDate ? new Date(String(rawDate)) : '');
+
             saveOrder({
-                date: excelDateToJSDate(row[1]["Date"]) || '',
-                categorie: row[1]["Catégorie"] || '',
-                orderId: row[1]["ID"] || 0,
-                prixClient: Math.abs(Number(row[1]["Prix client"])) || 0,
-                prixAchat: Math.abs(Number(row[1]["Prix achat"])) || 0,
-                commentaires: row[1]["Commentaire"] || '',
+                date: date || new Date(),
+                categorie: rowObj["Catégorie"] || '',
+                orderId,
+                prixClient: Math.abs(Number(rowObj["Prix client"])) || 0,
+                prixAchat: Math.abs(Number(rowObj["Prix achat"])) || 0,
+                commentaires: rowObj["Commentaire"] || '',
                 watch: false,
                 user_id: auth.user._id,
                 history: "Import"

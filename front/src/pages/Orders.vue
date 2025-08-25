@@ -4,13 +4,14 @@
     <DeleteOrderPanel v-if="idOrderToDelete !== null" :orderId="idOrderToDelete" @close="idOrderToDelete = null" />
     <CommentsPanel v-if="openCommentsPanel !== null"
         :order="formattedData.find(order => order._id === openCommentsPanel)" @close="openCommentsPanel = null" />
-    <HistoryPanel v-if="openHistoryPanel !== null"
-        :order="formattedData.find(order => order._id === openHistoryPanel)" @close="openHistoryPanel = null" />
+    <HistoryPanel v-if="openHistoryPanel !== null" :order="formattedData.find(order => order._id === openHistoryPanel)"
+        @close="openHistoryPanel = null" />
 
     <div class="orders-content">
         <div class="topbar">
             <div class="title-page">Commandes</div>
             <div class="actions">
+                <Input class="search-input" type="text" placeholder="Rechercher ..." v-model="search" />
                 <ImportOrders class="action-button" />
                 <Button color="blue" class="action-button" @click="isNewOrderPanelOpen = true" :icon="addIcon"
                     msg="Ajouter une commande" />
@@ -39,13 +40,11 @@
                     <unknowIcon style="width: 48px; fill: white;" class="w-2 h-2 text-red-500" v-else />
                     <div>
                         <div>#{{ data.orderId }}</div>
-                        <div class="table-row__date">{{ format(data.date, 'dd/MM/yyyy') }}</div>
+                        <div class="table-row__date"></div>
                     </div>
                 </div>
                 <div class="table-row__categorie">
-                    <Tag :icon="data.categorie === 'Shopify' ? shopify : data.categorie === 'Commandes' ? money : unknowIcon"
-                        :color="data.categorie === 'Shopify' ? 'green' : data.categorie === 'Commandes' ? 'orange' : 'blue'">
-                        {{ data.categorie }}</Tag>
+                    {{ format(data.date, 'dd/MM/yyyy') }}
                 </div>
                 <div class="table-row__prixClient">{{ data.prixClient }} €</div>
                 <div class="table-row__prixAchat">{{ data.prixAchat }} €</div>
@@ -81,7 +80,7 @@ import shopify from '../assets/icons/shopify.svg'
 import filterIcon from '../assets/icons/filter.svg'
 import unknowIcon from '../assets/icons/unknow.svg'
 import Button from '../components/Button.vue';
-import Tag from '../components/Tag.vue';
+import Input from '../components/Input.vue';
 import EditOrderPanel from '../components/EditOrderPanel.vue';
 import DeleteOrderPanel from '../components/DeleteOrderPanel.vue';
 import { format } from 'date-fns'
@@ -99,7 +98,7 @@ const order = useOrderStore()
 // Définition des colonnes
 const columns = ref([
     { title: 'ID', size: 15, filter: 'down' },
-    { title: 'CATEGORIE', size: 10 },
+    { title: 'DATE', size: 10, filter: 'none' },
     { title: 'PRIX CLIENT', size: 10, filter: 'none' },
     { title: 'PRIX ACHAT', size: 10, filter: 'none' },
     { title: 'MARGE €', size: 10, filter: 'none' },
@@ -117,10 +116,12 @@ function filter(index: number) {
     })
 }
 
+const search = ref('');
+
 const formattedData = computed<Order[]>(() => {
     const columnKeys = [
         'orderId',
-        'categorie',
+        'date',
         'prixClient',
         'prixAchat',
         'margeEuro',
@@ -130,35 +131,85 @@ const formattedData = computed<Order[]>(() => {
 
     const list = Array.isArray(order.ordersList) ? order.ordersList.slice() : [];
 
-    const activeColumn = columns.value.find(col => col.filter === 'up' || col.filter === 'down');
-    if (!activeColumn) return list as unknown as Order[];
+    // --- FILTER ---
+    const q = String(search.value ?? '').trim().toLowerCase();
+    const filtered = q.length === 0 ? list : list.filter(o => {
+        // build a searchable string containing relevant fields
+        const parts: string[] = [];
 
-    const colIndex = columns.value.indexOf(activeColumn);
-    if (colIndex < 0 || colIndex >= columnKeys.length) return list as unknown as Order[];
-
-    const sortKey = columnKeys[colIndex] as string;
-
-    // copie pour ne pas muter store
-    const sorted = list.slice().sort((a, b) => {
-        const aRaw = (a as any)[sortKey];
-        const bRaw = (b as any)[sortKey];
-
-        // gérer numériques vs chaines
-        const numericKeys = ['prixClient', 'prixAchat', 'margeEuro', 'margePercent', 'id'];
-        let aValue: number | string = aRaw ?? '';
-        let bValue: number | string = bRaw ?? '';
-
-        if (numericKeys.includes(sortKey)) {
-            aValue = Number(aValue) || 0;
-            bValue = Number(bValue) || 0;
-        } else {
-            aValue = String(aValue);
-            bValue = String(bValue);
+        if (o._id) parts.push(String(o._id));
+        if (o.orderId !== undefined) parts.push(String(o.orderId));
+        if (o.categorie) parts.push(String(o.categorie));
+        if (o.prixClient !== undefined) parts.push(String(o.prixClient));
+        if (o.prixAchat !== undefined) parts.push(String(o.prixAchat));
+        if (o.margeEuro !== undefined) parts.push(String(o.margeEuro));
+        if (o.margePercent !== undefined) parts.push(String(o.margePercent));
+        if (o.date) {
+            try {
+                parts.push(format(new Date(o.date), 'dd/MM/yyyy'));
+            } catch (e) { parts.push(String(o.date)); }
         }
 
-        if (aValue < bValue) return activeColumn.filter === 'up' ? -1 : 1;
-        if (aValue > bValue) return activeColumn.filter === 'up' ? 1 : -1;
-        return 0;
+        // commentaires : array of objects or string
+        if (Array.isArray((o as any).commentaires)) {
+            for (const c of (o as any).commentaires) {
+                if (c?.commentaire) parts.push(String(c.commentaire));
+                if (c?.user_id !== undefined) parts.push(String(c.user_id));
+            }
+        } else if ((o as any).commentaire) {
+            parts.push(String((o as any).commentaire));
+        }
+
+        // history entries
+        if (Array.isArray((o as any).history)) {
+            for (const h of (o as any).history) {
+                if (h?.action) parts.push(String(h.action));
+                if (h?.user_id !== undefined) parts.push(String(h.user_id));
+            }
+        }
+
+        const hay = parts.join(' ').toLowerCase();
+        return hay.indexOf(q) !== -1;
+    });
+
+    // --- SORT (same logic as before, applied on filtered list) ---
+    const activeColumn = columns.value.find(col => col.filter === 'up' || col.filter === 'down');
+    if (!activeColumn) return filtered as unknown as Order[];
+
+    const colIndex = columns.value.indexOf(activeColumn);
+    if (colIndex < 0 || colIndex >= columnKeys.length) return filtered as unknown as Order[];
+
+    const sortKey = columnKeys[colIndex] as string;
+    const direction = activeColumn.filter === 'up' ? 1 : -1;
+
+    const numericKeys = ['prixClient', 'prixAchat', 'margeEuro', 'margePercent', 'orderId', 'id'];
+
+    const sorted = filtered.slice().sort((a, b) => {
+        let aRaw = (a as any)[sortKey];
+        let bRaw = (b as any)[sortKey];
+
+        if (aRaw === undefined || aRaw === null) aRaw = '';
+        if (bRaw === undefined || bRaw === null) bRaw = '';
+
+        if (sortKey === 'date') {
+            const aTime = aRaw ? new Date(aRaw).getTime() : 0;
+            const bTime = bRaw ? new Date(bRaw).getTime() : 0;
+            if (aTime < bTime) return -1 * direction;
+            if (aTime > bTime) return 1 * direction;
+            return 0;
+        }
+
+        if (numericKeys.includes(sortKey)) {
+            const aNum = Number(aRaw) || 0;
+            const bNum = Number(bRaw) || 0;
+            if (aNum < bNum) return -1 * direction;
+            if (aNum > bNum) return 1 * direction;
+            return 0;
+        }
+
+        const aStr = String(aRaw);
+        const bStr = String(bRaw);
+        return aStr.localeCompare(bStr) * direction;
     });
 
     return sorted as unknown as Order[];
@@ -209,9 +260,16 @@ const openHistoryPanel = ref<string | null>(null)
 .actions {
     display: flex;
     align-items: center;
-    margin-left: auto;
     margin-bottom: 1rem;
     color: var(--color-text);
+    width: 100%;
+    justify-content: end;
+}
+
+.search-input {
+    display: flex;
+    flex-direction: column;
+    width: 30rem;
 }
 
 .action-button {

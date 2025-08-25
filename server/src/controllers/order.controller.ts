@@ -6,20 +6,20 @@ export const save = async (req: Request, res: Response) => {
   const { date, categorie, orderId, prixClient, prixAchat, commentaires, watch, history, user_id } = req.body;
   try {
     const order = await Order.create({
-       date,
-       categorie,
-       orderId,
-       prixClient,
-       prixAchat,
-       commentaires: commentaires !== '' ? [{date: new Date(), commentaire: commentaires, username: user_id}] : [],
-       watch,
-       history: [{date: new Date(), action: history, user_id: user_id}]
+      date,
+      categorie,
+      orderId,
+      prixClient,
+      prixAchat,
+      commentaires: commentaires !== '' ? [{ date: new Date(), commentaire: commentaires, username: user_id }] : [],
+      watch,
+      history: [{ date: new Date(), action: history, user_id: user_id }]
     }) as import('../models/order.model').IOrder;
     res.status(201).json({
       id: order.id,
     });
   } catch (error) {
-    console.log({ date, categorie, orderId, prixClient, prixAchat, commentaires });
+    console.log({ error });
     res.status(500).json({ message: 'Server error' });
   }
 };
@@ -153,8 +153,8 @@ export const update = async (req: Request, res: Response) => {
     if (categorie !== undefined) order.categorie = categorie
     if (prixClient !== undefined) order.prixClient = Math.abs(Number(prixClient ?? 0))
     if (prixAchat !== undefined) order.prixAchat = Math.abs(Number(prixAchat ?? 0))
-    if (commentaires !== '') order.commentaires.push({date: new Date(), commentaire: commentaires, user_id: user_id})
-    if (history !== undefined) order.history.push({date: new Date(), action: history, user_id: user_id})
+    if (commentaires !== '') order.commentaires.push({ date: new Date(), commentaire: commentaires, user_id: user_id })
+    if (history !== undefined) order.history.push({ date: new Date(), action: history, user_id: user_id })
     if (watch !== undefined) order.watch = watch
 
     const saved = await order.save()
