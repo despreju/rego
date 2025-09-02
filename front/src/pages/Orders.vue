@@ -300,7 +300,7 @@ const openHistoryPanel = ref<string | null>(null)
 }
 
 .table-head>.ID {
-    padding-left: 5rem;
+    padding-left: 8.5rem;
     justify-content: start !important;
 }
 

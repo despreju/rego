@@ -22,7 +22,7 @@
         <div class="card-info">{{ (totalMarge() - sumPrixAchat(order.paymentsList)).toFixed(2) }} €</div>
       </div>
       <div class="grid-card" style="grid-column: 3;grid-row: 1">
-        <div class="card-title">Argent gagné</div>
+        <div class="card-title">Chiffre d'affaires</div>
         <div class="card-info">{{ totalMarge().toFixed(2) }} €</div>
       </div>
       <div class="grid-card button-actions" style="grid-column: 4;grid-row: 1">
@@ -86,7 +86,7 @@ function totalMarge(): number {
   }, 0).toFixed(2)) - Number((order.ordersList || []).reduce((acc, item) => {
     const v = Number(item?.prixAchat ?? 0) || 0;
     return acc + v;
-  }, 0).toFixed(2)) - Number(sumPrixAchat(order.shopifyList).toFixed(2)) - Number(sumPrixAchat(order.adsList).toFixed(2));
+  }, 0).toFixed(2));
 }
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000

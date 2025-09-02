@@ -1,17 +1,6 @@
 import { useAuthStore, type User } from '../stores/auth';
+import type { LoginPayload, LoginResponse } from '../types';
 import api, { parseApiError } from './axios'
-
-export interface LoginPayload {
-  login: string;
-  password: string;
-}
-
-export interface LoginResponse {
-  token: string;
-  login: string;
-  user: User;
-  id: string;
-}
 
 export const login = async (payload: LoginPayload): Promise<LoginResponse> => {
   try {
@@ -25,6 +14,17 @@ export const login = async (payload: LoginPayload): Promise<LoginResponse> => {
 export const signin = async (payload: LoginPayload): Promise<LoginResponse> => {
   try {
     const res = await api.post('/auth/register', payload)
+    return res.data
+  } catch (e) {    
+    throw parseApiError(e)
+  }
+};
+
+export const getUsers = async (): Promise<Array<User>> => {
+  try {
+    const res = await api.get('/auth/getUsers')
+    const auth =  useAuthStore();
+    auth.getUsers(res.data.users);
     return res.data
   } catch (e) {    
     throw parseApiError(e)
@@ -45,6 +45,15 @@ export const check = async () => {
     const response = await api.get('/auth/verify-token');
     const auth =  useAuthStore();
     auth.check(response.data.user);
+    return response.data;
+  } catch (e) {
+    throw parseApiError(e)
+  }
+};
+
+export const updateUser = async (payload: LoginPayload) => {
+  try {
+    const response = await api.put('/auth/update', payload);
     return response.data;
   } catch (e) {
     throw parseApiError(e)
