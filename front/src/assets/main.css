@@ -1,4 +1,15 @@
-:root {
+:root{
+  /* couleurs principales */
+  --color-bg: #1c1e29;
+  --color-surface: #282835;
+  --color-surface-hover: #252531;
+  --color-text: #e6e6e9;
+  --color-text-secondary: #9c9c9c;
+  --color-primary: #2b7be4;
+  --color-success: #2db34a;
+  --color-error:  #e04545;
+  --color-accent:  #ffd166;
+
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
@@ -7,16 +18,7 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: #272831
-}
-
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
+  background: var(--color-bg);
 }
 
 body {
@@ -28,23 +30,6 @@ body {
   min-height: 100vh;
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
-}
-
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
-}
-
-.card {
-  padding: 2em;
-}
-
 #app {
   margin: 0 auto;
   text-align: center;
@@ -54,6 +39,7 @@ button:focus-visible {
 
 html {
   box-sizing: border-box;
+  scrollbar-gutter: stable; /* réserve l'espace de la scrollbar */
 }
 
 *, *::before, *::after {

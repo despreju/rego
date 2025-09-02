@@ -1,46 +1,47 @@
 import { defineStore } from 'pinia'
-import type { OrderPayload } from '../services/orderService'
+import type { Order } from '../types';
 
-interface Order {
-  date: Date;
-  categorie: string;
-  id: number;
-  prixClient: number;
-  prixAchat: number;
-  margeEuro: number;
-  margePercent: number;
-  commentaire: string;
+function pushToList(list: Array<Order>, order: Order) {
+  list.push({
+    _id: order._id ?? '',
+    date: order.date,
+    categorie: order.categorie,
+    orderId: order.orderId ?? '',
+    prixClient: Math.abs(Number(order.prixClient ?? 0)),
+    prixAchat: Math.abs(Number(order.prixAchat ?? 0)),
+    margeEuro: Number((Math.abs(Number(order.prixClient ?? 0)) - Math.abs(Number(order.prixAchat ?? 0))).toFixed(1)),
+    margePercent: Number(((Math.abs(Number(order.prixClient ?? 0)) - Math.abs(Number(order.prixAchat ?? 0))) / Math.abs(Number(order.prixClient ?? 0)) * 100).toFixed(1)),
+    commentaires: order.commentaires ?? [],
+    watch: order.watch ?? false,
+    history: order.history ?? [],
+  });
 }
 
 export const useOrderStore = defineStore('order', {
   state: () => ({
     ordersList: [] as Array<Order>,
+    adsList: [] as Array<Order>,
+    shopifyList: [] as Array<Order>,
+    paymentsList: [] as Array<Order>,
   }),
 
   actions: {
-    saveOrders(orders: Array<OrderPayload>) {
-
-      this.ordersList = orders.map(item => ({
-        date: item.date,
-        categorie: getCategorie(item.categorie),
-        id: item.id ?? '',
-        prixClient: Math.abs(Number(item.prixClient ?? 0)),
-        prixAchat: Math.abs(Number(item.prixAchat ?? 0)),
-        margeEuro: Number((Math.abs(Number(item.prixClient ?? 0))-Math.abs(Number(item.prixAchat ?? 0))).toFixed(1)),
-        margePercent: Number(((Math.abs(Number(item.prixClient ?? 0))-Math.abs(Number(item.prixAchat ?? 0)))/Math.abs(Number(item.prixClient ?? 0))*100).toFixed(1)),
-        commentaire: item.commentaire ?? ''
-      }));
+    saveOrders(orders: Array<Order>) {
+      this.ordersList = [];
+      this.adsList = [];
+      this.shopifyList = [];
+      this.paymentsList = [];
+      orders.forEach(order => {
+        if (order.categorie.toLowerCase() === 'ads') {
+          pushToList(this.adsList, order);
+        } else if (order.categorie.toLowerCase() === 'shopify') {
+          pushToList(this.shopifyList, order);
+        } else if (order.categorie.toLowerCase() === 'payment') {
+          pushToList(this.paymentsList, order);
+        } else if (order.categorie.toLowerCase() === 'commandes') {
+          pushToList(this.ordersList, order);
+        }
+      });
     },
   },
 })
-
-function getCategorie(categorie: string): string {
-  switch (categorie) {
-    case 'Commandes':
-      return 'Commandes';
-    case 'Shopify':
-      return 'Shopify';
-    default:
-      return 'Inconnu';
-  }
-}

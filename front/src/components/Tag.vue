@@ -18,30 +18,25 @@ const colorClass = computed(() => {
 <style>
 .tag {
     display: flex;
-    background-color: #1C1B20;
     padding: 0.5rem 1rem 0.3rem 1rem;
     border-radius: 0.25rem;
     align-items: flex-start;
-    color: black;
+    color: var(--color-bg);
 }
 
 .tag--blue {
-    background-color: #0174DC;
+    background-color: var(--color-primary);
 }
 
 .tag--red {
-    background-color: #b10808;
+    background-color: var(--color-error);
 }
 
 .tag--green {
-    background-color: #008000;
+    background-color: var(--color-success);
 }
 
 .tag--orange {
-    background-color: #DD9239;
-}
-
-.tag--yellow {
-    background-color: #B1CB2D;
+    background-color: var(--color-accent);
 }
 </style>

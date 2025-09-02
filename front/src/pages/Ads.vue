@@ -1,5 +1,5 @@
 <template>
-    <EditOrderPanel v-if="isNewOrderPanelOpen" @close="isNewOrderPanelOpen = false; orderToEdit = null"
+    <EditAdsPanel v-if="isNewOrderPanelOpen" @close="isNewOrderPanelOpen = false; orderToEdit = null"
         :order="orderToEdit" />
     <DeleteOrderPanel v-if="idOrderToDelete !== null" :orderId="idOrderToDelete" @close="idOrderToDelete = null" />
     <CommentsPanel v-if="openCommentsPanel !== null"
@@ -9,11 +9,11 @@
 
     <div class="orders-content">
         <div class="topbar">
-            <div class="title-page">Commandes</div>
+            <div class="title-page">Paiement divers</div>
             <div class="actions">
                 <Input class="search-input" type="text" placeholder="Rechercher ..." v-model="search" />
                 <Button color="blue" class="action-button" @click="isNewOrderPanelOpen = true" :icon="addIcon"
-                    msg="Ajouter une commande" />
+                    msg="Ajouter dépense" />
             </div>
         </div>
         <div class="table-info"><strong>{{ formattedData.length }}</strong> résultats</div>
@@ -30,22 +30,12 @@
         </div>
         <div v-for="(data, index) in formattedData" :key="index">
             <div class="table-row">
-                <div class="table-row__id">
+                <div class="table-row__categorie">
                     <warning v-if="data.watch" class="data-watch__warning" />
                     <success v-else class="data-watch__success" />
-                    <money style="width: 40px; fill: var(--color-text)" class="w-2 h-2 text-red-500" />
-                    <div>
-                        <div>#{{ data.orderId }}</div>
-                        <div class="table-row__date"></div>
-                    </div>
-                </div>
-                <div class="table-row__categorie">
                     {{ format(data.date, 'dd/MM/yyyy') }}
                 </div>
-                <div class="table-row__prixClient">{{ data.prixClient }} €</div>
                 <div class="table-row__prixAchat">{{ data.prixAchat }} €</div>
-                <div class="table-row__margeEuro">{{ data.margeEuro }} €</div>
-                <div class="table-row__margePercent">{{ data.margePercent }} %</div>
                 <div class="table-row__data-actions">
                     <Button @click="editOrder(data)" :icon="edit"></Button>
                     <Button @click="openHistoryPanel = data._id" :icon="history">
@@ -65,8 +55,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import CommentsPanel from '../components/CommentsPanel.vue';
-import { useOrderStore } from '../stores/order'
-import money from '../assets/icons/money.svg'
+import { useOrderStore } from '../stores/order.ts'
 import arrow_up from '../assets/icons/arrow_up.svg'
 import arrow_down from '../assets/icons/arrow_down.svg'
 import edit from '../assets/icons/edit.svg'
@@ -74,7 +63,7 @@ import deleteIcon from '../assets/icons/delete.svg'
 import filterIcon from '../assets/icons/filter.svg'
 import Button from '../components/Button.vue';
 import Input from '../components/Input.vue';
-import EditOrderPanel from '../components/EditOrderPanel.vue';
+import EditAdsPanel from '../components/EditAdsPanel.vue';
 import DeleteOrderPanel from '../components/DeleteOrderPanel.vue';
 import { format } from 'date-fns'
 import type { Order } from '../types/index.ts';
@@ -88,13 +77,10 @@ import HistoryPanel from '../components/HistoryPanel.vue';
 
 const order = useOrderStore()
 
+// Définition des colonnes
 const columns = ref([
-    { title: 'ID', size: 15, filter: 'down' },
-    { title: 'DATE', size: 10, filter: 'none' },
-    { title: 'PRIX CLIENT', size: 10, filter: 'none' },
-    { title: 'PRIX ACHAT', size: 10, filter: 'none' },
-    { title: 'MARGE €', size: 10, filter: 'none' },
-    { title: 'MARGE %', size: 10, filter: 'none' },
+    { title: 'DATE', size: 10, filter: 'down' },
+    { title: 'PRIX', size: 10, filter: 'none' },
     { title: '', size: 30 },
 ])
 
@@ -111,22 +97,17 @@ function filter(index: number) {
 const search = ref('');
 
 const formattedData = computed<Order[]>(() => {
-    const columnKeys = [
-        'orderId',
+   const columnKeys = [
         'date',
-        'prixClient',
         'prixAchat',
-        'margeEuro',
-        'margePercent',
-        'commentaire'
     ] as const;
 
-    const list = Array.isArray(order.ordersList) ? order.ordersList.slice() : [];
+    // take orders from store
+    const adsList = Array.isArray(order.adsList) ? order.adsList.slice() : [];
 
     // --- FILTER ---
     const q = String(search.value ?? '').trim().toLowerCase();
-    const filtered = q.length === 0 ? list : list.filter(o => {
-        // build a searchable string containing relevant fields
+    const filtered = q.length === 0 ? adsList : adsList.filter(o => {
         const parts: string[] = [];
 
         if (o._id) parts.push(String(o._id));
@@ -142,7 +123,6 @@ const formattedData = computed<Order[]>(() => {
             } catch (e) { parts.push(String(o.date)); }
         }
 
-        // commentaires : array of objects or string
         if (Array.isArray((o as any).commentaires)) {
             for (const c of (o as any).commentaires) {
                 if (c?.commentaire) parts.push(String(c.commentaire));
@@ -152,7 +132,6 @@ const formattedData = computed<Order[]>(() => {
             parts.push(String((o as any).commentaire));
         }
 
-        // history entries
         if (Array.isArray((o as any).history)) {
             for (const h of (o as any).history) {
                 if (h?.action) parts.push(String(h.action));
@@ -164,7 +143,7 @@ const formattedData = computed<Order[]>(() => {
         return hay.indexOf(q) !== -1;
     });
 
-    // --- SORT (same logic as before, applied on filtered list) ---
+    // --- SORT (applied on filtered shopify orders) ---
     const activeColumn = columns.value.find(col => col.filter === 'up' || col.filter === 'down');
     if (!activeColumn) return filtered as unknown as Order[];
 
