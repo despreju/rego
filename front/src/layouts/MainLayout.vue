@@ -78,7 +78,6 @@ import { useOrderStore } from '../stores/order'
 import EditProfilePanel from '../components/EditProfilePanel.vue';
 
 const userStore = useAuthStore();
-const currentUser = ref(userStore.user);
 const order = useOrderStore()
 
 const { handleApiError } = useError()

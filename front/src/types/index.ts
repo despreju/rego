@@ -13,9 +13,9 @@ export type User = {
 export interface LoginPayload {
   login: string | null | undefined;
   password?: string | null | undefined;
-  firstname: string | null | undefined;
-  name: string | null | undefined;
-  email: string | null | undefined;
+  firstname?: string | null | undefined;
+  name?: string | null | undefined;
+  email?: string | null | undefined;
 }
 
 export interface LoginResponse {
