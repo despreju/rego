@@ -7,20 +7,20 @@
     </div>
     <div class="stats">
       <div class="grid-card" style="grid-column: 1;grid-row: 1">
-        <div class="card-title">Nombre de commandes</div>
-        <div class="card-info">{{ order.ordersList.length }}</div>
+        <div class="card-title">Nombre d'opérations</div>
+        <div class="card-info">{{ order.ordersList.length + order.shopifyList.length + order.adsList.length + order.paymentsList.length }}</div>
       </div>
       <div class="grid-card" style="grid-column: 2;grid-row: 1">
-        <div class="card-title">Rentrée d'argent</div>
-        <div class="card-info">---</div>
+        <div class="card-title">Trésorerie</div>
+        <div class="card-info">{{ totalMarge() - sumPrixAchat(order.paymentsList) }} €</div>
       </div>
       <div class="grid-card" style="grid-column: 3;grid-row: 1">
-        <div class="card-title">Sortie d'argent</div>
-        <div class="card-info">---</div>
+        <div class="card-title">Argent gagné</div>
+        <div class="card-info">{{ totalMarge() }} €</div>
       </div>
       <div class="grid-card" style="grid-column: 4;grid-row: 1">
-        <div class="card-title">Marge totale</div>
-        <div class="card-info">---</div>
+        <div class="card-title">Dépense commande</div>
+        <div class="card-info">{{ sumPrixAchat(order.ordersList) }} €</div>
       </div>
       <div class="graph grid-card"
         style="grid-column-start: 1; grid-column-end: 4; grid-row-start: 2; grid-row-end: 4;">
@@ -29,11 +29,11 @@
       </div>
       <div class="grid-card" style="grid-column: 4;grid-row: 2">
         <div class="card-title">Dépenses Shopify</div>
-        <div class="card-info">---</div>
+        <div class="card-info">{{ sumPrixAchat(order.shopifyList) }} €</div>
       </div>
       <div class="grid-card" style="grid-column: 4;grid-row: 3">
         <div class="card-title">Dépenses Pub</div>
-        <div class="card-info">---</div>
+        <div class="card-info">{{ sumPrixAchat(order.adsList) }} €</div>
       </div>
     </div>
   </div>
@@ -42,15 +42,32 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useOrderStore } from '../stores/order'
+import type { Order } from '../types';
 
 const order = useOrderStore()
+
+function sumPrixAchat(list: Array<Order>): number {
+  return Number((list || []).reduce((acc, item) => {
+    const v = Number(item?.prixAchat ?? 0) || 0;
+    return acc + v;
+  }, 0).toFixed(2));
+}
+
+function totalMarge(): number {
+  return Number((order.ordersList || []).reduce((acc, item) => {
+    const v = Number(item?.prixClient ?? 0) || 0;
+    return acc + v;
+  }, 0).toFixed(2)) - Number((order.ordersList || []).reduce((acc, item) => {
+    const v = Number(item?.prixAchat ?? 0) || 0;
+    return acc + v;
+  }, 0).toFixed(2));
+}
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000
 const MS_PER_WEEK = 7 * MS_PER_DAY
 
 function startOfWeekMonday(date: Date) {
   const d = new Date(date)
-  // getDay: 0 (Sun) .. 6 (Sat). We want Monday as start => shift
   const day = (d.getDay() + 6) % 7 // 0 = Monday
   d.setHours(0, 0, 0, 0)
   d.setDate(d.getDate() - day)

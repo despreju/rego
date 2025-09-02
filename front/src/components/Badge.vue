@@ -43,4 +43,8 @@ const props = defineProps({
 .badge.error {
     background: var(--color-error);
 }
+
+.badge.accent {
+    background: var(--color-accent);
+}
 </style>

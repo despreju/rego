@@ -7,7 +7,8 @@
         </div>
         <div class="user">
           <div class="user-logo">{{ userStore.user.firstname[0] + userStore.user.name[0] }}</div>
-          <div class="user-profile" @click="onSubmitLogout">{{ userStore.user.firstname + ' ' + userStore.user.name }}</div>
+          <div class="user-profile">{{ userStore.user.firstname + ' ' + userStore.user.name }}
+          </div>
         </div>
       </div>
       <div class="wrapper">
@@ -17,13 +18,35 @@
             <home class="menu-icon" />
             <div class="menu-title">Accueil</div>
           </div>
-          <!-- <div class="menu">
-          <users class="menu-icon" />
-          <div class="menu-title">Utilisateurs</div>
-        </div> -->
           <div class="menu" @click="goTo('/orders')">
             <orders class="menu-icon" />
             <div class="menu-title">Commandes</div>
+            <Badge class="menu-badge" type="primary">{{ order.ordersList.length }}</Badge>
+          </div>
+          <div class="menu" @click="goTo('/shopify')">
+            <shopify class="menu-icon" />
+            <div class="menu-title">Paiement Shopify</div>
+            <Badge class="menu-badge" type="primary">{{ order.shopifyList.length }}</Badge>
+          </div>
+          <div class="menu" @click="goTo('/ads')">
+            <ad class="menu-icon" />
+            <div class="menu-title">Paiement pubs</div>
+            <Badge class="menu-badge" type="primary">{{ order.adsList.length }}</Badge>
+          </div>
+          <div class="sidebar-subtitle">GESTION INTERNE</div>
+          <!--<div class="menu" @click="goTo('/users')">
+            <users class="menu-icon" />
+            <div class="menu-title">Utilisateurs</div>
+            <Badge class="menu-badge" type="accent">158</Badge>
+          </div>-->
+          <div class="menu" @click="goTo('/payment')">
+            <money class="menu-icon" />
+            <div class="menu-title">Versement</div>
+            <Badge class="menu-badge" type="accent">{{ order.paymentsList.length }}</Badge>
+          </div>
+          <div class="menu"  @click="onSubmitLogout" style="margin-top: calc(100% + 27rem);">
+            <logoutIcon class="menu-icon" style="fill: none;"/>
+            <div class="menu-title">Se déconnecter</div>
           </div>
         </div>
         <div class="content">
@@ -37,15 +60,22 @@
 <script setup lang="ts">
 import orders from '../assets/icons/orders.svg';
 import home from '../assets/icons/home.svg';
-import { ref, onMounted } from 'vue'
+import logoutIcon from '../assets/icons/logout.svg';
+import shopify from '../assets/icons/home.svg';
+import money from '../assets/icons/money.svg';
+import ad from '../assets/icons/ad.svg';
+import Badge from '../components/Badge.vue';
+import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router';
 import { logout } from '../api/authApi';
 import { useAuthStore } from '../stores/auth';
 import { getOrders } from '../api/orderApi';
 import { useError } from '../composables/useError'
 import type { ApiError } from '../api/axios';
+import { useOrderStore } from '../stores/order'
 
 const userStore = useAuthStore();
+const order = useOrderStore()
 
 const { handleApiError } = useError()
 const apiErr = ref<ApiError | null>(null)
@@ -102,10 +132,20 @@ onMounted(async () => {
   text-align: left;
 }
 
+.sidebar-subtitle {
+  margin-top: 2rem;
+  margin-left: 1.2rem;
+  margin-bottom: 1rem;
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  text-align: left;
+}
+
 .menu {
   display: flex;
   align-items: center;
   cursor: pointer;
+  position: relative;
 }
 
 .menu:hover {
@@ -116,11 +156,17 @@ onMounted(async () => {
 .menu-icon {
   width: 32px;
   margin: 1rem;
+  fill: var(--color-text)
 }
 
 .menu-title {
   white-space: nowrap;
   text-align: left;
+}
+
+.menu-badge {
+  right: 1rem;
+  left: auto;
 }
 
 .top-bar {

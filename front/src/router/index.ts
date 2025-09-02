@@ -3,6 +3,9 @@ import { useAuthStore } from '../stores/auth';
 import Login from '../pages/Login.vue';
 import Home from '../pages/Home.vue';
 import Orders from '../pages/Orders.vue';
+import Shopify from '../pages/Shopify.vue';
+import Ads from '../pages/Ads.vue';
+import Payment from '../pages/Payment.vue';
 import { check } from '../api/authApi';
 
 const routes = [
@@ -26,6 +29,22 @@ const routes = [
     component: Orders,
     meta: { requiresAuth: true, layout: 'app' },
   },
+  {
+    path: '/shopify',
+    component: Shopify,
+    meta: { requiresAuth: true, layout: 'app' },
+  },
+  {
+    path: '/ads',
+    component: Ads,
+    meta: { requiresAuth: true, layout: 'app' },
+  },
+  {
+    path: '/payment',
+    component: Payment,
+    meta: { requiresAuth: true, layout: 'app' },
+  },
+
 ];
 
 const router = createRouter({
