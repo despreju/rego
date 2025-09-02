@@ -9,11 +9,11 @@
 
     <div class="orders-content">
         <div class="topbar">
-            <div class="title-page">Paiement publicité</div>
+            <div class="title-page">Paiement divers</div>
             <div class="actions">
                 <Input class="search-input" type="text" placeholder="Rechercher ..." v-model="search" />
                 <Button color="blue" class="action-button" @click="isNewOrderPanelOpen = true" :icon="addIcon"
-                    msg="Ajouter une pub" />
+                    msg="Ajouter dépense" />
             </div>
         </div>
         <div class="table-info"><strong>{{ formattedData.length }}</strong> résultats</div>

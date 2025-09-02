@@ -12,7 +12,6 @@
             <div class="title-page">Commandes</div>
             <div class="actions">
                 <Input class="search-input" type="text" placeholder="Rechercher ..." v-model="search" />
-                <ImportOrders class="action-button" />
                 <Button color="blue" class="action-button" @click="isNewOrderPanelOpen = true" :icon="addIcon"
                     msg="Ajouter une commande" />
             </div>
@@ -65,7 +64,6 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import ImportOrders from '../components/ImportOrders.vue';
 import CommentsPanel from '../components/CommentsPanel.vue';
 import { useOrderStore } from '../stores/order'
 import money from '../assets/icons/money.svg'

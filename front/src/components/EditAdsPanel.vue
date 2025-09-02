@@ -101,7 +101,7 @@ const onSaveOrder = async () => {
         })
         await fetchOrders()
         const { showToast } = useToast()
-        showToast('Publicité ajoutée', 'success')
+        showToast('Dépense ajoutée', 'success')
     } catch (e) {
         apiErr.value = handleApiError(e)
     } finally {
@@ -127,7 +127,7 @@ const onUpdateOrder = async () => {
         })
         await fetchOrders()
         const { showToast } = useToast()
-        showToast('Publicité mise à jour', 'success')
+        showToast('Dépense mise à jour', 'success')
     } catch (e) {
         apiErr.value = handleApiError(e)
     } finally {
@@ -136,7 +136,7 @@ const onUpdateOrder = async () => {
     }
 }
 
-const title = ref<string>('Ajouter un paiement publicité')
+const title = ref<string>('Ajouter une dépense')
 
 const getHistoryAction = () => {
     return `Mise à jour`
@@ -144,7 +144,7 @@ const getHistoryAction = () => {
 
 onMounted(() => {
     if (props.order) {
-        title.value = 'Modifier la publicité'
+        title.value = 'Modifier la dépense'
         formOrder.value = {
             id: props.order._id,
             orderId: props.order.orderId,

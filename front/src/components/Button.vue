@@ -54,6 +54,15 @@ button:hover {
     background: var(--color-primary);
 }
 
+.button-accent {
+    background: var(--color-accent);
+    color: var(--color-bg);
+}
+
+.button-accent > .button-icon {
+    fill: var(--color-bg);
+}
+
 .button-icon {
     width: 32px;
     display: inline-block;

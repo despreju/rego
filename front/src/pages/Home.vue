@@ -1,26 +1,39 @@
 <template>
+  <EditOrderPanel v-if="isNewOrderPanelOpen" @close="isNewOrderPanelOpen = false;" :order="null" />
+  <EditAdPanel v-if="isNewAdPanelOpen" @close="isNewAdPanelOpen = false;" :order="null" />
+  <EditPaymentPanel v-if="isNewPaymentPanelOpen" @close="isNewPaymentPanelOpen = false;" :order="null" />
+  <EditShopifyPanel v-if="isNewShopifyPanelOpen" @close="isNewShopifyPanelOpen = false;" :order="null" />
   <div class="dashboard">
     <div class="topbar">
       <div class="title-page">Dashboard</div>
       <div class="actions">
+        <ExportOrders class="action-button" />
+        <ImportOrders class="action-button" style="margin-left: 2rem;" />
       </div>
     </div>
     <div class="stats">
       <div class="grid-card" style="grid-column: 1;grid-row: 1">
         <div class="card-title">Nombre d'opérations</div>
-        <div class="card-info">{{ order.ordersList.length + order.shopifyList.length + order.adsList.length + order.paymentsList.length }}</div>
+        <div class="card-info">{{ order.ordersList.length + order.shopifyList.length + order.adsList.length +
+          order.paymentsList.length }}</div>
       </div>
       <div class="grid-card" style="grid-column: 2;grid-row: 1">
         <div class="card-title">Trésorerie</div>
-        <div class="card-info">{{ totalMarge() - sumPrixAchat(order.paymentsList) }} €</div>
+        <div class="card-info">{{ (totalMarge() - sumPrixAchat(order.paymentsList)).toFixed(2) }} €</div>
       </div>
       <div class="grid-card" style="grid-column: 3;grid-row: 1">
         <div class="card-title">Argent gagné</div>
-        <div class="card-info">{{ totalMarge() }} €</div>
+        <div class="card-info">{{ totalMarge().toFixed(2) }} €</div>
       </div>
-      <div class="grid-card" style="grid-column: 4;grid-row: 1">
-        <div class="card-title">Dépense commande</div>
-        <div class="card-info">{{ sumPrixAchat(order.ordersList) }} €</div>
+      <div class="grid-card button-actions" style="grid-column: 4;grid-row: 1">
+        <Button class="button-action" color="blue" @click="isNewOrderPanelOpen = true" :icon="addIcon"
+          msg="Ajouter une commande" />
+        <Button class="button-action" color="blue" @click="isNewAdPanelOpen = true" :icon="addIcon"
+          msg="Ajouter une dépense" />
+        <Button class="button-action" color="blue" @click="isNewPaymentPanelOpen = true" :icon="addIcon"
+          msg="Ajouter un versement" />
+        <Button class="button-action" color="blue" @click="isNewShopifyPanelOpen = true" :icon="addIcon"
+          msg="Ajouter Shopify" />
       </div>
       <div class="graph grid-card"
         style="grid-column-start: 1; grid-column-end: 4; grid-row-start: 2; grid-row-end: 4;">
@@ -32,7 +45,7 @@
         <div class="card-info">{{ sumPrixAchat(order.shopifyList) }} €</div>
       </div>
       <div class="grid-card" style="grid-column: 4;grid-row: 3">
-        <div class="card-title">Dépenses Pub</div>
+        <div class="card-title">Dépenses Autres</div>
         <div class="card-info">{{ sumPrixAchat(order.adsList) }} €</div>
       </div>
     </div>
@@ -40,9 +53,22 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useOrderStore } from '../stores/order'
 import type { Order } from '../types';
+import ImportOrders from '../components/ImportOrders.vue';
+import addIcon from '../assets/icons/add.svg'
+import EditOrderPanel from '../components/EditOrderPanel.vue';
+import EditAdPanel from '../components/EditAdsPanel.vue';
+import EditPaymentPanel from '../components/EditPaymentPanel.vue';
+import EditShopifyPanel from '../components/EditShopifyPanel.vue';
+import Button from '../components/Button.vue';
+import ExportOrders from '../components/ExportOrders.vue';
+
+const isNewOrderPanelOpen = ref(false)
+const isNewAdPanelOpen = ref(false)
+const isNewPaymentPanelOpen = ref(false)
+const isNewShopifyPanelOpen = ref(false)
 
 const order = useOrderStore()
 
@@ -60,7 +86,7 @@ function totalMarge(): number {
   }, 0).toFixed(2)) - Number((order.ordersList || []).reduce((acc, item) => {
     const v = Number(item?.prixAchat ?? 0) || 0;
     return acc + v;
-  }, 0).toFixed(2));
+  }, 0).toFixed(2)) - Number(sumPrixAchat(order.shopifyList).toFixed(2)) - Number(sumPrixAchat(order.adsList).toFixed(2));
 }
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000
@@ -144,7 +170,7 @@ const chartOptions = computed(() => ({
     type: 'category',
     categories: categories.value,
     labels: { rotate: -20 }
-  },yaxis: [
+  }, yaxis: [
     {
       title: { text: 'Commandes' },
       labels: { formatter: (val: number) => String(Math.round(val)) }
@@ -167,7 +193,7 @@ const chartOptions = computed(() => ({
   legend: {
     show: true,
     itemMargin: { horizontal: 24, vertical: 8 },
-    position: 'top',             
+    position: 'top',
     horizontalAlign: 'right',
     labels: { colors: 'var(--color-text)' },
   },
@@ -202,8 +228,27 @@ const chartOptions = computed(() => ({
   margin-bottom: 1rem;
 }
 
-.action-button {
-  margin-left: 2rem;
+.button-actions {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  /* 2 colonnes */
+  grid-auto-rows: minmax(48px, auto);
+  /* hauteur minimale par bouton */
+  gap: 2.5rem;
+  /* espace entre boutons */
+  padding: 0.5rem;
+  align-items: stretch;
+  justify-items: stretch;
+}
+
+.button-action {
+  width: 100%;
+  height: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  padding: 1rem;
 }
 
 .stats {
@@ -230,7 +275,7 @@ const chartOptions = computed(() => ({
 .card-title {
   color: var(--color-text);
   text-align: left;
-  font-size: 1.5rem;  
+  font-size: 1.5rem;
   box-sizing: border-box;
 }
 
@@ -238,5 +283,7 @@ const chartOptions = computed(() => ({
   color: var(--color-success);
   font-size: 4rem;
   text-align: left;
+  margin-top: 1rem;
+  font-style: italic;
 }
 </style>
