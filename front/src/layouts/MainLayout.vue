@@ -1,11 +1,12 @@
 <template>
+  <EditProfilePanel :user="userStore.user" v-if="isEditProfilePanelOpen" @close="isEditProfilePanelOpen = false"/>
   <div class="main-layout">
     <div>
       <div class="top-bar">
         <div class="app-title">
           <img src="../assets/rego.png" alt="logo" class="logo"> | Order Management
         </div>
-        <div class="user">
+        <div class="user" @click="isEditProfilePanelOpen = true">
           <div class="user-logo">{{ userStore.user.firstname[0] + userStore.user.name[0] }}</div>
           <div class="user-profile">{{ userStore.user.firstname + ' ' + userStore.user.name }}
           </div>
@@ -30,21 +31,21 @@
           </div>
           <div class="menu" @click="goTo('/ads')">
             <ad class="menu-icon" />
-            <div class="menu-title">Paiement pubs</div>
+            <div class="menu-title">Dépenses diverses</div>
             <Badge class="menu-badge" type="primary">{{ order.adsList.length }}</Badge>
           </div>
           <div class="sidebar-subtitle">GESTION INTERNE</div>
-          <!--<div class="menu" @click="goTo('/users')">
+          <div class="menu" @click="goTo('/users')">
             <users class="menu-icon" />
             <div class="menu-title">Utilisateurs</div>
-            <Badge class="menu-badge" type="accent">158</Badge>
-          </div>-->
+            <Badge class="menu-badge" type="accent">{{ userStore.users.length }}</Badge>
+          </div>
           <div class="menu" @click="goTo('/payment')">
             <money class="menu-icon" />
             <div class="menu-title">Versement</div>
             <Badge class="menu-badge" type="accent">{{ order.paymentsList.length }}</Badge>
           </div>
-          <div class="menu"  @click="onSubmitLogout" style="margin-top: calc(100% + 27rem);">
+          <div class="menu"  @click="onSubmitLogout" style="margin-top: calc(100% + 23rem);">
             <logoutIcon class="menu-icon" style="fill: none;"/>
             <div class="menu-title">Se déconnecter</div>
           </div>
@@ -63,22 +64,27 @@ import home from '../assets/icons/home.svg';
 import logoutIcon from '../assets/icons/logout.svg';
 import shopify from '../assets/icons/home.svg';
 import money from '../assets/icons/money.svg';
+import users from '../assets/icons/users.svg';
 import ad from '../assets/icons/ad.svg';
 import Badge from '../components/Badge.vue';
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router';
-import { logout } from '../api/authApi';
+import { getUsers, logout } from '../api/authApi';
 import { useAuthStore } from '../stores/auth';
 import { getOrders } from '../api/orderApi';
 import { useError } from '../composables/useError'
 import type { ApiError } from '../api/axios';
 import { useOrderStore } from '../stores/order'
+import EditProfilePanel from '../components/EditProfilePanel.vue';
 
 const userStore = useAuthStore();
+const currentUser = ref(userStore.user);
 const order = useOrderStore()
 
 const { handleApiError } = useError()
 const apiErr = ref<ApiError | null>(null)
+
+const isEditProfilePanelOpen = ref(false)
 
 const router = useRouter();
 
@@ -101,8 +107,17 @@ const fetchOrders = async () => {
   }
 };
 
+const fetchUsers = async () => {
+  try {
+    await getUsers()
+  } catch (e) {
+    apiErr.value = handleApiError(e)
+  }
+};
+
 onMounted(async () => {
   await fetchOrders()
+  await fetchUsers()
 });
 </script>
 
@@ -208,6 +223,14 @@ onMounted(async () => {
 .user {
   display: flex;
   align-items: center;
+  padding: 1rem;
+  height: 100%
+}
+
+.user:hover {
+  background-color: var(--color-surface-hover);
+  cursor: pointer;
+  transition: background-color 0.15s ease-in-out;
 }
 
 .user-logo {

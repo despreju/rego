@@ -6,6 +6,7 @@ import Orders from '../pages/Orders.vue';
 import Shopify from '../pages/Shopify.vue';
 import Ads from '../pages/Ads.vue';
 import Payment from '../pages/Payment.vue';
+import Users from '../pages/Users.vue';
 import { check } from '../api/authApi';
 
 const routes = [
@@ -42,6 +43,11 @@ const routes = [
   {
     path: '/payment',
     component: Payment,
+    meta: { requiresAuth: true, layout: 'app' },
+  },
+  {
+    path: '/users',
+    component: Users,
     meta: { requiresAuth: true, layout: 'app' },
   },
 

@@ -22,7 +22,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import { login, signin } from '../api/authApi';
+import { login } from '../api/authApi';
 import { useAuthStore } from '../stores/auth';
 import Loading from '../assets/icons/loading.svg';
 import { useError } from '../composables/useError'
@@ -53,7 +53,7 @@ const onSubmitLogin = async () => {
     }
 };
 
-const onSubmitSignin = async () => {
+/*const onSubmitSignin = async () => {
     try {
         const response = await signin({ login: 'jdz', password: 're86K1ng@' })
         const authStore = useAuthStore()
@@ -64,7 +64,7 @@ const onSubmitSignin = async () => {
     } finally {
         isLoading.value = false
     }
-};
+};*/
 </script>
 
 <style>

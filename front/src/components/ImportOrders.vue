@@ -90,7 +90,7 @@ function handleFileUpload(file: File) {
                 watch: false,
                 user_id: auth.user._id,
                 history: "Import"
-            }).then(response => {
+            }).then(() => {
                 counter ++;
             }).catch(error => {
                 console.error('Error saving order:', error);

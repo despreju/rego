@@ -3,10 +3,13 @@ import { setAccessToken, removeAccessToken } from '../utils/auth';
 import router from '../router';
 import type { User } from '../types';
 
+export type { User };
+
 export const useAuthStore = defineStore('user', {
   state: () => ({
     isAuthenticated: false as boolean,
-    user: {} as User
+    user: {} as User,
+    users: [] as Array<User>
   }),
 
   actions: {
@@ -24,6 +27,9 @@ export const useAuthStore = defineStore('user', {
     check(user: User) {
         this.isAuthenticated = true
         this.user = user
+    },
+    getUsers(users: Array<User>) {
+        this.users = users
     },
     initFromStorage() {
       const t = localStorage.getItem('rego-token')
