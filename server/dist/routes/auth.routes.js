@@ -6,6 +6,8 @@ const auth_middleware_1 = require("../middleware/auth.middleware");
 const router = (0, express_1.Router)();
 router.post('/register', auth_controller_1.register);
 router.post('/login', auth_controller_1.login);
+router.get('/getUsers', auth_middleware_1.protect, auth_controller_1.getAllUsers);
 router.get('/logout', auth_controller_1.logout);
 router.get('/verify-token', auth_middleware_1.protect, auth_controller_1.check);
+router.put('/update', auth_middleware_1.protect, auth_controller_1.updateUser);
 exports.default = router;

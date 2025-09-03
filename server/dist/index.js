@@ -10,9 +10,7 @@ const cors_1 = __importDefault(require("cors"));
 const auth_routes_1 = __importDefault(require("./routes/auth.routes"));
 const order_routes_1 = __importDefault(require("./routes/order.routes"));
 const body_parser_1 = __importDefault(require("body-parser"));
-
 dotenv_1.default.config();
-
 const mongoUri = process.env.MONGO_URI;
 if (!mongoUri) {
     console.error('MONGO_URI non défini — vérifie les variables d\'environnement sur Railway.');
