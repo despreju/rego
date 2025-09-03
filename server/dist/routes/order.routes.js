@@ -6,4 +6,6 @@ const auth_middleware_1 = require("../middleware/auth.middleware");
 const router = (0, express_1.Router)();
 router.post('/save', auth_middleware_1.protect, order_controller_1.save);
 router.get('/orders', auth_middleware_1.protect, order_controller_1.getAll);
+router.delete('/remove/:id', auth_middleware_1.protect, order_controller_1.remove);
+router.put('/update', auth_middleware_1.protect, order_controller_1.update);
 exports.default = router;

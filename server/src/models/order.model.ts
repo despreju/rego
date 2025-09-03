@@ -21,6 +21,7 @@ export interface IOrder extends Document {
   commentaires: IComment[];
   watch: boolean;
   history: IHistory[];
+  owner: string;
 }
 
 const CommentSchema = new Schema<IComment>(
@@ -49,7 +50,8 @@ const OrderSchema = new Schema<IOrder>({
   prixAchat: { type: Number, required: false, },
   commentaires: { type: [CommentSchema], default: [] },
   watch: { type: Boolean, default: false },
-  history: { type: [HistorySchema], default: [] }
+  history: { type: [HistorySchema], default: [] },
+  owner: { type: String, required: true }
 
 }, { timestamps: true });
 

@@ -34,12 +34,25 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importStar(require("mongoose"));
+const CommentSchema = new mongoose_1.Schema({
+    user_id: { type: String, required: false },
+    commentaire: { type: String, default: '' },
+    date: { type: Date, default: Date.now }
+}, { _id: false });
+const HistorySchema = new mongoose_1.Schema({
+    user_id: { type: String, required: false },
+    action: { type: String, default: '' },
+    date: { type: Date, default: Date.now }
+}, { _id: false });
 const OrderSchema = new mongoose_1.Schema({
     date: { type: Date, default: Date.now },
     categorie: { type: String, required: false },
-    id: { type: Number, required: false },
+    orderId: { type: Number, required: true, unique: true },
     prixClient: { type: Number, required: false },
     prixAchat: { type: Number, required: false, },
-    commentaire: { type: String, default: '', required: false }
+    commentaires: { type: [CommentSchema], default: [] },
+    watch: { type: Boolean, default: false },
+    history: { type: [HistorySchema], default: [] },
+    owner: { type: String, required: true }
 }, { timestamps: true });
 exports.default = mongoose_1.default.model('Order', OrderSchema);
