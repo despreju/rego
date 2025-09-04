@@ -51,7 +51,7 @@ const OrderSchema = new Schema<IOrder>({
   commentaires: { type: [CommentSchema], default: [] },
   watch: { type: Boolean, default: false },
   history: { type: [HistorySchema], default: [] },
-  owner: { type: String, required: true }
+  owner: { type: String, required: false }
 
 }, { timestamps: true });
 
