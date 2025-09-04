@@ -10,7 +10,7 @@ export function useError() {
     const err = (e as ApiError)?.message ? (e as ApiError) : { message: String((e as Error)?.message ?? 'Erreur inconnue') } as ApiError
     lastError.value = err
 
-    showToast(err.message, 'error', 666000)
+    showToast(err.message, 'error', 5000)
     return err
   }
 

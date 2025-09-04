@@ -19,7 +19,7 @@
       </div>
       <div class="grid-card" style="grid-column: 2;grid-row: 1">
         <div class="card-title">Trésorerie</div>
-        <div class="card-info">{{ (totalMarge() - sumPrixAchat(order.paymentsList)).toFixed(2) }} €</div>
+        <div class="card-info">{{ (totalMarge() - sumPrixAchat(order.paymentsList) - sumPrixAchat(order.shopifyList) - sumPrixAchat(order.adsList)).toFixed(2) }} €</div>
       </div>
       <div class="grid-card" style="grid-column: 3;grid-row: 1">
         <div class="card-title">Chiffre d'affaires</div>
