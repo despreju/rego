@@ -14,7 +14,6 @@
                 v-model="formOrder.ourPrice" />
         </div>
 
-        <Input class="order-input" label="Catégories" type="text" placeholder="" v-model="formOrder.category" />
         <Input class="order-input" label="A surveiller" type="checkbox" v-model="formOrder.watch" />
         <Input class="order-input" label="Ajouter un commentaire" type="text" placeholder=""
             v-model="formOrder.commentary" />
