@@ -17,6 +17,9 @@
             </div>
         </div>
         <div class="table-info"><strong>{{ formattedData.length }}</strong> résultats</div>
+
+        <Input class="order-input" label="Ne voir que les commandes à surveiller" type="checkbox" v-model="showOnlyWatched" style="margin: 1rem 0;"/>
+
         <div class="table-head">
             <div v-for="(column, index) in columns" :class="column.title" :key="index"
                 :style="{ width: column.size + '%' }">
@@ -52,7 +55,7 @@
                         <Badge type="primary">{{ data.history?.length }}</Badge>
                     </Button>
                     <Button @click="openCommentsPanel = data._id" :icon="comments">
-                        <Badge type="primary">{{ data.commentaires?.length }}</Badge>
+                        <Badge v-if="data.commentaires?.length > 0" type="primary">{{ data.commentaires?.length }}</Badge>
                     </Button>
                     <Button color="red" @click="idOrderToDelete = data._id" :icon="deleteIcon"></Button>
                 </div>
@@ -110,6 +113,8 @@ function filter(index: number) {
 
 const search = ref('');
 
+const showOnlyWatched = ref(false);
+
 const formattedData = computed<Order[]>(() => {
     const columnKeys = [
         'orderId',
@@ -123,9 +128,14 @@ const formattedData = computed<Order[]>(() => {
 
     const list = Array.isArray(order.ordersList) ? order.ordersList.slice() : [];
 
+    // appliquer le filtre "showOnlyWatched" en premier
+    const baseList = showOnlyWatched.value
+        ? list.filter(o => Boolean((o as any).watch) )
+        : list;
+
     // --- FILTER ---
     const q = String(search.value ?? '').trim().toLowerCase();
-    const filtered = q.length === 0 ? list : list.filter(o => {
+    const filtered = q.length === 0 ? baseList : baseList.filter(o => {
         // build a searchable string containing relevant fields
         const parts: string[] = [];
 
@@ -247,7 +257,7 @@ const openHistoryPanel = ref<string | null>(null)
     font-weight: bold;
     font-size: 3rem;
     text-align: left;
-        width: 100%;
+    width: 100%;
 }
 
 .actions {

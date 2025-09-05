@@ -281,7 +281,7 @@ const chartOptions = computed(() => ({
 
 .card-info {
   color: var(--color-success);
-  font-size: 4rem;
+  font-size: 2rem;
   text-align: left;
   margin-top: 1rem;
   font-style: italic;

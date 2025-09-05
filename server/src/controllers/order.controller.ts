@@ -11,7 +11,7 @@ export const save = async (req: Request, res: Response) => {
       orderId,
       prixClient,
       prixAchat,
-      commentaires: commentaires !== '' ? [{ date: new Date(), commentaire: commentaires, username: user_id }] : [],
+      commentaires: commentaires !== '' ? [{ date: new Date(), commentaire: commentaires, user_id: user_id }] : [],
       watch,
       history: [{ date: new Date(), action: history, user_id: user_id }]
     }) as import('../models/order.model').IOrder;
