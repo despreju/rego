@@ -35,6 +35,7 @@ export interface Order {
   commentaires: Array<Commentaire>;
   watch: boolean;
   history: Array<History>;
+  siteName: string;
 }
 
 export interface History {
@@ -59,9 +60,14 @@ export interface OrderPayload {
   commentaires: string;
   watch: boolean,
   user_id: string,
-  history: string
+  history: string,
+  siteName: string
 }
 
 export interface OrderResponse {
   _id: number;
+}
+
+export interface Site {
+  name: string;
 }

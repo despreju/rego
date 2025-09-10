@@ -1,5 +1,6 @@
 <template>
-  <EditProfilePanel :user="userStore.user" v-if="isEditProfilePanelOpen" @close="isEditProfilePanelOpen = false"/>
+  <SwitchSitePanel v-if="switchSiteIsOpen" @close="switchSiteIsOpen = false" />
+  <EditProfilePanel :user="userStore.user" v-if="isEditProfilePanelOpen" @close="isEditProfilePanelOpen = false" />
   <div class="main-layout">
     <div>
       <div class="top-bar">
@@ -14,6 +15,9 @@
       </div>
       <div class="wrapper">
         <div class="sidebar">
+          <div class="current-site">SITE
+            <Switch />
+          </div>
           <div class="sidebar-title">MENU PRINCIPAL</div>
           <div class="menu" @click="goTo('/home')">
             <home class="menu-icon" />
@@ -45,8 +49,8 @@
             <div class="menu-title">Versement</div>
             <Badge class="menu-badge" type="accent">{{ order.paymentsList.length }}</Badge>
           </div>
-          <div class="menu"  @click="onSubmitLogout" style="margin-top: calc(100% + 23rem);">
-            <logoutIcon class="menu-icon" style="fill: none;"/>
+          <div class="menu" @click="onSubmitLogout">
+            <logoutIcon class="menu-icon" style="fill: none;" />
             <div class="menu-title">Se déconnecter</div>
           </div>
         </div>
@@ -67,6 +71,7 @@ import money from '../assets/icons/money.svg';
 import users from '../assets/icons/users.svg';
 import ad from '../assets/icons/ad.svg';
 import Badge from '../components/Badge.vue';
+import Switch from '../assets/icons/Switch.svg';
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router';
 import { getUsers, logout } from '../api/authApi';
@@ -76,6 +81,7 @@ import { useError } from '../composables/useError'
 import type { ApiError } from '../api/axios';
 import { useOrderStore } from '../stores/order'
 import EditProfilePanel from '../components/EditProfilePanel.vue';
+import SwitchSitePanel from '../components/SwitchSitePanel.vue';
 
 const userStore = useAuthStore();
 const order = useOrderStore()
@@ -84,6 +90,7 @@ const { handleApiError } = useError()
 const apiErr = ref<ApiError | null>(null)
 
 const isEditProfilePanelOpen = ref(false)
+const switchSiteIsOpen = ref(false)
 
 const router = useRouter();
 
@@ -114,9 +121,21 @@ const fetchUsers = async () => {
   }
 };
 
+const getSiteData = async () => {
+  try {
+    await fetchOrders()
+    await fetchUsers()
+  } catch (e) {
+    apiErr.value = handleApiError(e)
+  }
+};
+
 onMounted(async () => {
-  await fetchOrders()
-  await fetchUsers()
+  if (sessionStorage.getItem('rego-site')) {
+    await getSiteData()
+  } else {
+    switchSiteIsOpen.value = true;
+  }
 });
 </script>
 
@@ -135,6 +154,29 @@ onMounted(async () => {
   flex-direction: column;
   overflow: hidden;
   z-index: 10;
+}
+
+/* push the last .menu element to the bottom regardless of how many menus there are */
+.sidebar>.menu:last-child {
+  margin-top: auto;
+}
+
+.current-site {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 2rem;
+  background: var(--color-surface);
+  cursor: pointer;
+}
+
+.current-site:hover {
+  background: var(--color-surface-hover);
+}
+
+.current-site>svg {
+  width: 24px;
+  fill: var(--color-text);
 }
 
 .sidebar-title {

@@ -1,19 +1,35 @@
 import { Request, Response } from 'express';
 import Order from '../models/order.model';
 import User from '../models/user.model';
+import Site from '../models/site.model';
 
 export const save = async (req: Request, res: Response) => {
-  const { date, categorie, orderId, prixClient, prixAchat, commentaires, watch, history, user_id } = req.body;
+  const { date, categorie, orderId, prixClient, prixAchat, commentaires, watch, history, user_id, siteName } = req.body;
   try {
+    // si un siteName est fourni, on tente de retrouver le site en base
+    let siteDoc: any = null;
+    if (siteName && String(siteName).trim() !== '') {
+      siteDoc = await Site.findOne({ name: String(siteName).trim() }).lean() || null;
+    }
+    let historyTmp = [];
+    let commentaryTmp = []
+    if (Array.isArray(history)) {
+      historyTmp = history
+      commentaryTmp = commentaires
+    } else {
+      historyTmp = [{ date: new Date(), action: history, user_id: user_id }]
+      commentaryTmp = commentaires !== '' ? [{ date: new Date(), commentaire: commentaires, user_id: user_id }] : []
+    }
     const order = await Order.create({
       date,
       categorie,
       orderId,
       prixClient,
       prixAchat,
-      commentaires: commentaires !== '' ? [{ date: new Date(), commentaire: commentaires, user_id: user_id }] : [],
+      commentaires: commentaryTmp,
       watch,
-      history: [{ date: new Date(), action: history, user_id: user_id }]
+      history: historyTmp,
+      site: siteDoc
     }) as import('../models/order.model').IOrder;
     res.status(201).json({
       id: order.id,

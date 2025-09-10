@@ -28,6 +28,7 @@ import Input from '../components/Input.vue';
 import Loading from '../assets/icons/loading.svg';
 import { computed, onMounted, ref } from 'vue'
 import { useAuthStore } from '../stores/auth.ts';
+import { useSiteStore } from '../stores/site';
 import { saveOrder, updateOrder, getOrders } from '../api/orderApi.ts';
 import { useError } from '../composables/useError.ts'
 import type { ApiError } from '../api/axios.ts';
@@ -40,6 +41,7 @@ const props = defineProps<{ order: Order | null }>()
 const emit = defineEmits(['close'])
 const { handleApiError } = useError()
 const apiErr = ref<ApiError | null>(null)
+const siteStore = useSiteStore()
 
 const formOrder = ref<{
     id: string,
@@ -49,7 +51,8 @@ const formOrder = ref<{
     commentary: string,
     category: string,
     date: Date,
-    watch: boolean
+    watch: boolean,
+    siteName: string
 }>({
     id: '',
     orderId: 0,
@@ -58,7 +61,8 @@ const formOrder = ref<{
     commentary: '',
     category: 'Shopify',
     date: new Date(),
-    watch: false
+    watch: false,
+    siteName: String(siteStore.currentSite)
 })
 
 const dateString = computed({
@@ -97,7 +101,8 @@ const onSaveOrder = async () => {
             categorie: formOrder.value.category,
             watch: formOrder.value.watch,
             user_id: auth.user._id,
-            history: "Création"
+            history: "Création",
+            siteName: String(siteStore.currentSite)
         })
         await fetchOrders()
         const { showToast } = useToast()
@@ -123,7 +128,8 @@ const onUpdateOrder = async () => {
             categorie: formOrder.value.category,
             watch: formOrder.value.watch,
             user_id: auth.user?._id,
-            history: getHistoryAction()
+            history: getHistoryAction(),
+            siteName: formOrder.value.siteName
         })
         await fetchOrders()
         const { showToast } = useToast()
@@ -153,7 +159,8 @@ onMounted(() => {
             commentary: '',
             category: props.order.categorie,
             date: new Date(props.order.date),
-            watch: props.order.watch
+            watch: props.order.watch,
+            siteName: props.order.siteName
         };
     } else {
         formOrder.value = {
@@ -164,7 +171,8 @@ onMounted(() => {
             commentary: '',
             category: 'Shopify',
             date: new Date(),
-            watch: false
+            watch: false,
+            siteName: String(siteStore.currentSite)
         };
     }
 });

@@ -44,7 +44,6 @@ const onSubmitLogin = async () => {
         const { showToast } = useToast()
         showToast('Connexion réussie', 'success')
         const authStore = useAuthStore()
-        console.log(response)
         authStore.login(response.token, response.user)
     } catch (e) {
         apiErr.value = handleApiError(e)

@@ -13,8 +13,10 @@ import { ref } from 'vue';
 import { saveOrder } from '../api/orderApi';
 import importIcon from '../assets/icons/import.svg';
 import { useAuthStore } from '../stores/auth';
+import { useSiteStore } from '../stores/site';
 
 const auth = useAuthStore()
+const siteStore = useSiteStore()
 
 function handleFileUpload(file: File) {
 
@@ -86,10 +88,11 @@ function handleFileUpload(file: File) {
                 orderId,
                 prixClient: Math.abs(Number(rowObj["Prix client"])) || 0,
                 prixAchat: Math.abs(Number(rowObj["Prix achat"])) || 0,
-                commentaires: rowObj["Commentaire"] || '',
+                commentaires: JSON.parse(rowObj["Commentaires"]),
                 watch: false,
                 user_id: auth.user._id,
-                history: "Import"
+                history: JSON.parse(rowObj["History"]),
+                siteName: String(siteStore.currentSite) || '',
             }).then(() => {
                 counter ++;
             }).catch(error => {

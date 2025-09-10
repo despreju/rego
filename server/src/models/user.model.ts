@@ -1,5 +1,6 @@
 import mongoose, { Schema, Document } from 'mongoose';
 import bcrypt from 'bcryptjs';
+import { ISite, SiteSchema } from './site.model';
 
 export interface IUser extends Document {
   login: string;
@@ -8,6 +9,7 @@ export interface IUser extends Document {
   name?: string;
   firstname?: string;
   comparePassword(candidate: string): Promise<boolean>;
+  sites: ISite[];
 }
 
 const UserSchema = new Schema<IUser>({
@@ -15,7 +17,8 @@ const UserSchema = new Schema<IUser>({
   password: { type: String, required: true },
   email: { type: String, required: false, unique: true },
   name: { type: String, required: false },
-  firstname: { type: String, required: false }
+  firstname: { type: String, required: false },
+  sites: { type: [SiteSchema], default: [], required: true }
 }, { timestamps: true });
 
 UserSchema.pre('save', async function (next) {
