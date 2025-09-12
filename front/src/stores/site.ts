@@ -1,13 +1,14 @@
 import { defineStore } from 'pinia'
+import type { Site } from '../types';
 
 export const useSiteStore = defineStore('site', {
   state: () => ({
-    currentSite: undefined as String | undefined,
+    currentSite: {} as Site,
   }),
 
   actions: {
-    setSite(siteName: String) {        
-        this.currentSite = siteName;
+    setSite(site: Site) {
+      this.currentSite = site;
     },
   },
 })

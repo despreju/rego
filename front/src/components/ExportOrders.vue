@@ -108,6 +108,7 @@ function exportXlsx() {
                 'ID': getId(o),
                 'Prix client': (o?.prixClient !== undefined && o?.prixClient !== null) ? Number(o.prixClient) : '',
                 'Prix achat': (o?.prixAchat !== undefined && o?.prixAchat !== null) ? Number(o.prixAchat) : '',
+                'watch': o?.watch ? 1 : 0,
                 'Commentaires': commentairesToJSON(o?.commentaires ?? o?.commentaire ?? '[]'),
                 'History': historyToJSON(o?.history ?? '[]')
             });

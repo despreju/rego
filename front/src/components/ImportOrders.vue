@@ -37,6 +37,17 @@ function handleFileUpload(file: File) {
         return new Date(date_info.getFullYear(), date_info.getMonth(), date_info.getDate(), date_info.getHours(), date_info.getMinutes(), date_info.getSeconds());
     }
 
+    function oneZeroToBool(v: any): boolean {
+        if (typeof v === 'boolean') return v;
+        if (v === undefined || v === null) return false;
+        const s = String(v).trim().toLowerCase();
+        if (s === '1' || s === 'true') return true;
+        if (s === '0' || s === 'false') return false;
+        // fallback: treat any non-empty numeric as boolean
+        const n = Number(s);
+        return !Number.isNaN(n) && n !== 0;
+    }
+
     function parseDateDDMMYYYY(input: string): Date | null {
         if (!input || typeof input !== 'string') return null;
         const m = input.trim().match(/^(\d{1,2})[-\/\.](\d{1,2})[-\/\.](\d{4})$/);
@@ -81,7 +92,7 @@ function handleFileUpload(file: File) {
 
             // fallback à la date actuelle si non parseable
             const date = dateObj ?? new Date();
-            counter ++;
+            counter++;
             saveOrder({
                 date,
                 categorie: rowObj["Catégorie"] || '',
@@ -89,12 +100,12 @@ function handleFileUpload(file: File) {
                 prixClient: Math.abs(Number(rowObj["Prix client"])) || 0,
                 prixAchat: Math.abs(Number(rowObj["Prix achat"])) || 0,
                 commentaires: JSON.parse(rowObj["Commentaires"]),
-                watch: false,
+                watch: oneZeroToBool(rowObj["watch"]),
                 user_id: auth.user._id,
                 history: JSON.parse(rowObj["History"]),
-                siteName: String(siteStore.currentSite) || '',
+                siteId: String(siteStore.currentSite._id) || '',
             }).then(() => {
-                counter ++;
+                counter++;
             }).catch(error => {
                 console.error('Error saving order:', error);
             });

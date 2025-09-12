@@ -52,7 +52,7 @@ const formOrder = ref<{
     category: string,
     date: Date,
     watch: boolean,
-    siteName: string
+    siteId: string
 }>({
     id: '',
     orderId: 0,
@@ -62,7 +62,7 @@ const formOrder = ref<{
     category: 'Shopify',
     date: new Date(),
     watch: false,
-    siteName: String(siteStore.currentSite)
+    siteId: String(siteStore.currentSite._id)
 })
 
 const dateString = computed({
@@ -102,7 +102,7 @@ const onSaveOrder = async () => {
             watch: formOrder.value.watch,
             user_id: auth.user._id,
             history: "Création",
-            siteName: String(siteStore.currentSite)
+            siteId: String(siteStore.currentSite._id)
         })
         await fetchOrders()
         const { showToast } = useToast()
@@ -129,7 +129,7 @@ const onUpdateOrder = async () => {
             watch: formOrder.value.watch,
             user_id: auth.user?._id,
             history: getHistoryAction(),
-            siteName: formOrder.value.siteName
+            siteId: formOrder.value.siteId
         })
         await fetchOrders()
         const { showToast } = useToast()
@@ -160,7 +160,7 @@ onMounted(() => {
             category: props.order.categorie,
             date: new Date(props.order.date),
             watch: props.order.watch,
-            siteName: props.order.siteName
+            siteId: props.order.siteId
         };
     } else {
         formOrder.value = {
@@ -172,7 +172,7 @@ onMounted(() => {
             category: 'Shopify',
             date: new Date(),
             watch: false,
-            siteName: String(siteStore.currentSite)
+            siteId: String(siteStore.currentSite._id)
         };
     }
 });

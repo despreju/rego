@@ -1,4 +1,5 @@
 import { useAuthStore, type User } from '../stores/auth';
+import { useSiteStore } from '../stores/site';
 import type { LoginPayload, LoginResponse } from '../types';
 import api, { parseApiError } from './axios'
 
@@ -13,20 +14,23 @@ export const login = async (payload: LoginPayload): Promise<LoginResponse> => {
 
 export const signin = async (payload: LoginPayload): Promise<LoginResponse> => {
   try {
-    const res = await api.post('/auth/register', payload)
+    const siteStore = useSiteStore()
+    const res = await api.post('/auth/register', { ...payload, siteId: siteStore.currentSite._id });
     return res.data
-  } catch (e) {    
+  } catch (e) {
     throw parseApiError(e)
   }
 };
 
 export const getUsers = async (): Promise<Array<User>> => {
   try {
-    const res = await api.get('/auth/getUsers')
-    const auth =  useAuthStore();
+    const siteStore = useSiteStore()
+
+    const res = await api.post('/auth/getUsers', { siteId: siteStore.currentSite._id });
+    const auth = useAuthStore();
     auth.getUsers(res.data.users);
     return res.data
-  } catch (e) {    
+  } catch (e) {
     throw parseApiError(e)
   }
 };
@@ -43,7 +47,7 @@ export const logout = async () => {
 export const check = async () => {
   try {
     const response = await api.get('/auth/verify-token');
-    const auth =  useAuthStore();
+    const auth = useAuthStore();
     auth.check(response.data.user);
     return response.data;
   } catch (e) {

@@ -2,16 +2,34 @@
     <Panel>
         <div class="switch-site-panel">
             <div v-if="!addSite">
-                <div class="topbar-switch">
+                <div class="topbar-switch" v-if="!loadingData">
                     <div class="title">Choisissez le site sur lequel vous souhaitez travailler</div>
+                    
+                </div>
+                <div class="topbar-loading" v-else>
+                    <div class="title">{{ siteLoading }}</div>
+                    <div>Récupération des commandes
+                        <loading v-if="loadingOrders" style="width: 40px; margin-left: 4rem" />
+                        <success v-else style="fill: var(--color-success); width: 40px; margin-left: 4rem" />
+                    </div>
+                    <div>Récupération des utilisateurs
+                        <loading v-if="loadingUsers" style="width: 40px; margin-left: 4rem" />
+                        <success v-else style="fill: var(--color-success); width: 40px; margin-left: 4rem" />
+                    </div>
+                    <div>Préparation de l'interface
+                        <loading v-if="loadingUI" style="width: 40px; margin-left: 4rem" />
+                        <success v-else style="fill: var(--color-success); width: 40px; margin-left: 4rem" />
+                    </div>
+                </div>
+                <div v-if="!loadingData" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2rem;">
+                    <div v-for="(site, index) in sites" :key="index">
+                        <Button class="button-action" color="accent" :msg="site.name"
+                            @click="switchToSite(site)" />
+                    </div>
                     <Button class="button-action" color="blue" @click="addSite = true" :icon="addIcon"
-                        msg="Créer un site" style="margin-left: 4rem"/>
+                        msg="Créer un site"/>
                 </div>
 
-                <div v-for="(site, index) in sites" :key="index">
-                    <Button class="button-action" color="accent" :msg="site" style="margin-right: 5rem"
-                        @click="switchToSite(site)" />
-                </div>
             </div>
             <div v-if="addSite" style="padding: 2rem 6rem">
                 <div class="title" style="margin-bottom: 2rem;">Créer un nouveau site</div>
@@ -24,9 +42,6 @@
                 <div v-else>Loading">
                     <loading />
                 </div>
-            </div>
-            <div v-if="loadingData">
-                Chargement des données...
             </div>
         </div>
     </Panel>
@@ -42,6 +57,7 @@ import Button from './Button.vue';
 import Input from './Input.vue';
 import addIcon from '../assets/icons/add.svg';
 import loading from '../assets/icons/loading.svg';
+import success from '../assets/icons/success.svg';
 import { useToast } from '../composables/useToast';
 import { useError } from '../composables/useError.ts'
 import type { ApiError } from '../api/axios.ts';
@@ -49,7 +65,7 @@ import type { Site } from '../types/index.ts';
 import { getOrders } from '../api/orderApi.ts';
 import { getUsers } from '../api/authApi.ts';
 
-const { handleApiError } = useError()  
+const { handleApiError } = useError()
 const apiErr = ref<ApiError | null>(null)
 
 const authStore = useAuthStore();
@@ -57,7 +73,7 @@ const siteStore = useSiteStore();
 const addSite = ref(false);
 const loadingData = ref(false);
 const siteName = ref('');
-const sites = ref<string[]>([]);
+const sites = ref<Site[]>([]);
 const isLoading = ref(false);
 const emit = defineEmits(['close'])
 
@@ -76,41 +92,58 @@ const handleCreateSite = async () => {
     }
 };
 
-const switchToSite = async (siteName: string) => {
-    siteStore.setSite(siteName);
-    await getSiteData()
+const loadingOrders = ref(true);
+const loadingUsers = ref(true);
+const loadingUI = ref(true);
+
+const switchToSite = async (site: Site) => {
+    siteLoading.value = site.name;
     loadingData.value = true;
+    siteStore.setSite(site);
+    await getSiteData()
     emit('close');
 };
 
 const fetchOrders = async () => {
-  try {
-    await getOrders()
-  } catch (e) {
-    apiErr.value = handleApiError(e)
-  }
+    try {
+        await getOrders()
+    } catch (e) {
+        apiErr.value = handleApiError(e)
+    }
 };
 
 const fetchUsers = async () => {
-  try {
-    await getUsers()
-  } catch (e) {
-    apiErr.value = handleApiError(e)
-  }
+    try {
+        await getUsers()
+    } catch (e) {
+        apiErr.value = handleApiError(e)
+    }
 };
 
+const siteLoading = ref('load');
+
 const getSiteData = async () => {
-  try {
-    await fetchOrders()
-    await fetchUsers()
-  } catch (e) {
-    apiErr.value = handleApiError(e)
-  }
+    try {
+        await fetchOrders()
+        loadingOrders.value = false;
+        await fetchUsers()
+        loadingUsers.value = false;
+        // Simulate UI preparation delay
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        loadingUI.value = false;
+        loadingData.value = false;
+    } catch (e) {
+        apiErr.value = handleApiError(e)
+    }
 };
 
 onMounted(async () => {
     await fetchSites(authStore.user._id).then((res) => {
-        sites.value = res.map((site: Site) => (site.name));
+        if (res.length === 1) {
+            switchToSite(res[0]);
+        } else {
+            sites.value = res.map((site: Site) => (site));
+        }
     }).catch((error) => {
         console.error('Error fetching sites:', error);
     });
@@ -127,10 +160,26 @@ onMounted(async () => {
 
 .topbar-switch {
     display: flex;
-    justify-content: center;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 2rem;
+}
+
+.topbar-loading {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.topbar-loading>div {
+    height: 4rem;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: var(--color-text)
 }
 
 .title {
@@ -139,6 +188,7 @@ onMounted(async () => {
 }
 
 .site {
+    margin-bottom: 2rem;
     background-color: var(--color-accent);
     color: var(--color-bg);
     padding: 0.5rem;

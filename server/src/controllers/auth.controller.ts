@@ -1,28 +1,23 @@
 import { Request, Response } from 'express';
 import User from '../models/user.model';
 import { generateToken } from '../utils/generateToken';
+import Site from '../models/site.model';
 
 interface AuthRequest extends Request {
   user?: any;
 }
 
 export const register = async (req: Request, res: Response) => {
-  console.log('signin called');
-  const { login, password, name, firstname, email } = req.body;
+  const { login, password, name, firstname, email, siteId } = req.body;
   try {
     const userExists = await User.findOne({ login });
-    console.log('1');
     if (userExists) return res.status(400).json({ message: 'User already exists' });
 
-    const user = await User.create({ login, password, name, firstname, email }) as import('../models/user.model').IUser;
-    console.log('2');
+    const user = await User.create({ login, password, name, firstname, email, sitesId: [siteId] }) as import('../models/user.model').IUser;
+
     res.status(201).json({
-      _id: user._id,
-      login: user.login,
-      name: user.name,
-      firstname: user.firstname,
-      email: user.email,
-      token: generateToken((user._id as string).toString())
+      user: user,
+      token: generateToken(String(user._id))
     });
   } catch (error) {
     console.log(error);
@@ -31,7 +26,7 @@ export const register = async (req: Request, res: Response) => {
 };
 
 export const login = async (req: Request, res: Response) => {
-  console.log('login called', );
+  console.log('login called',);
   const { login, password } = req.body;
   try {
     const user = await User.findOne({ login }) as import('../models/user.model').IUser;
@@ -77,8 +72,23 @@ export const getUser = async (req: AuthRequest, res: Response) => {
 
 export const getAllUsers = async (_req: Request, res: Response) => {
   try {
-    // récupère tous les users sans champs sensibles
-    const users = await User.find().select('-password -__v').lean();
+    const siteIdRaw = String(_req.body?.siteId ?? _req.query?.siteId ?? '').trim();
+    const query: any = {};
+
+    if (siteIdRaw) {
+      // valider le format ObjectId (24 hex chars)
+      if (!/^[0-9a-fA-F]{24}$/.test(siteIdRaw)) {
+        return res.status(400).json({ message: 'Invalid siteId' });
+      }
+      // users whose sitesId array contains the given siteId
+      query.sitesId = siteIdRaw;
+    }
+
+    const users = await User.find(query)
+      .select('-password -__v')
+      .populate({ path: 'sitesId', select: 'name _id' })
+      .lean();
+
     return res.status(200).json({ users });
   } catch (error) {
     console.error('getAllUsers error:', error);

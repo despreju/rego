@@ -5,7 +5,7 @@ import { protect } from '../middleware/auth.middleware';
 const router = Router();
 
 router.post('/save', protect, save);
-router.get('/orders', protect, getAll);
+router.post('/orders', protect, getAll);
 router.delete('/remove/:id', protect, remove);
 router.put('/update', protect, update);
 export default router;

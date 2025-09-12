@@ -1,5 +1,6 @@
 <template>
     <form class="login-form">
+        <AddUser v-if="openNewAccountPanel" @close="openNewAccountPanel = false" />
         <img src="../assets/rego.png" alt="logo">
         <div class="login-title">Bienvenue !</div>
         <div class="login-subtitle">Entre votre login et votre mot de passe pour entrer dans votre espace de travail.
@@ -17,7 +18,11 @@
             <Loading v-else />
         </div>
         <!--<Button color="blue" @click.prevent="onSubmitSignin" v-if="!isLoading" msg="Se connecter"/>-->
+        <div class="new-account" @click="openNewAccountPanel = true">Créer un compte</div>
     </form>
+
+    <Button color="accent" @click.prevent="guestMode" v-if="!isLoadingDemo" msg="Compte démo" style="margin-top: 4rem"/>
+    <Loading style="margin-top: 4rem" v-else />
 </template>
 
 <script setup lang="ts">
@@ -30,12 +35,16 @@ import type { ApiError } from '../api/axios';
 import { useToast } from '../composables/useToast'
 import Button from '../components/Button.vue'
 import Input from '../components/Input.vue'
+import AddUser from '../components/AddUser.vue';
 
 const { handleApiError } = useError()
 const apiErr = ref<ApiError | null>(null)
 
 const isLoading = ref(false);
+const isLoadingDemo = ref(false);
+
 const loginForm = ref({ login: '', password: '' });
+const openNewAccountPanel = ref(false);
 
 const onSubmitLogin = async () => {
     isLoading.value = true;
@@ -49,6 +58,21 @@ const onSubmitLogin = async () => {
         apiErr.value = handleApiError(e)
     } finally {
         isLoading.value = false
+    }
+};
+
+const guestMode = async () => {
+    isLoadingDemo.value = true;
+    try {
+        const response = await login({ login: 'demo', password: 'demo' })
+        const { showToast } = useToast()
+        showToast('Connexion réussie', 'success')
+        const authStore = useAuthStore()
+        authStore.login(response.token, response.user)
+    } catch (e) {
+        apiErr.value = handleApiError(e)
+    } finally {
+        isLoadingDemo.value = false
     }
 };
 
@@ -97,5 +121,14 @@ const onSubmitLogin = async () => {
 .button {
     width: 100%;
     margin-top: 2rem;
+}
+
+.new-account {
+    margin-top: 2rem;
+    color: var(--color-primary);
+    font-size: 0.9rem;
+    text-align: center;
+    cursor: pointer;
+    text-decoration: underline;
 }
 </style>

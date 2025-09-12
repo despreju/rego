@@ -21,12 +21,12 @@ export const createSite = async (req: Request, res: Response) => {
     if (userId) {
       const user = await User.findById(userId);
       if (user) {
-        const already = Array.isArray(user.sites) && user.sites.some((s: any) =>
+        const already = Array.isArray(user.sitesId) && user.sitesId.some((s: any) =>
           String(s._id) === String(site._id) || String(s.name) === String(site.name)
         );
 
         if (!already) {
-          user.sites.push(site.toObject ? site.toObject() : site);
+          user.sitesId.push(String(site._id));
           await user.save();
         }
       }
@@ -44,43 +44,21 @@ export const getSitesForUser = async (req: Request, res: Response) => {
   if (!userId) return res.status(400).json({ message: 'Missing user_id' });
 
   try {
-    const user = await User.findById(userId).select('sites').lean();
+    // récupérer uniquement le champ sitesId du user
+    const user = await User.findById(userId).select('sitesId').lean();
     if (!user) return res.status(404).json({ message: 'User not found' });
 
-    const rawSites = Array.isArray((user as any).sites) ? (user as any).sites : [];
+    const rawIds = Array.isArray((user as any).sitesId) ? (user as any).sitesId : [];
 
-    const embeddedSites: any[] = [];
-    const idCandidates: string[] = [];
+    // garder seulement les ObjectId valides
+    const validIds = rawIds
+      .map((v: any) => String(v))
+      .filter((id: string) => mongoose.Types.ObjectId.isValid(id));
 
-    for (const s of rawSites) {
-      if (!s) continue;
-      if (typeof s === 'string') {
-        if (mongoose.Types.ObjectId.isValid(s)) idCandidates.push(s);
-        // else: string not an ObjectId -> could be a name or invalid, ignore or handle as needed
-      } else if (typeof s === 'object') {
-        // if the object has a valid _id, treat it as a reference candidate
-        if (s._id && mongoose.Types.ObjectId.isValid(String(s._id))) {
-          idCandidates.push(String(s._id));
-        } else {
-          // embedded subdocument (no valid _id) -> keep as-is
-          embeddedSites.push(s);
-        }
-      }
-    }
+    if (validIds.length === 0) return res.status(200).json({ sites: [] });
 
-    let referencedSites: any[] = [];
-    if (idCandidates.length > 0) {
-      // fetch only valid ObjectId references
-      referencedSites = await Site.find({ _id: { $in: idCandidates } }).lean();
-    }
-
-    // combine and dedupe by _id (or stringify for embedded)
-    const map: Record<string, any> = {};
-    for (const s of [...embeddedSites, ...referencedSites]) {
-      const key = String(s._id ?? JSON.stringify(s));
-      map[key] = s;
-    }
-    const sites = Object.values(map);
+    // récupérer tous les Site dont _id est dans sitesId
+    const sites = await Site.find({ _id: { $in: validIds } }).lean();
 
     return res.status(200).json({ sites });
   } catch (error) {

@@ -8,6 +8,7 @@ export type User = {
   login: string;
   name: string;
   firstname: string;
+  sitesId: Array<string>;
 };
 
 export interface LoginPayload {
@@ -35,7 +36,7 @@ export interface Order {
   commentaires: Array<Commentaire>;
   watch: boolean;
   history: Array<History>;
-  siteName: string;
+  siteId: string;
 }
 
 export interface History {
@@ -61,7 +62,7 @@ export interface OrderPayload {
   watch: boolean,
   user_id: string,
   history: string,
-  siteName: string
+  siteId: string
 }
 
 export interface OrderResponse {
@@ -70,4 +71,5 @@ export interface OrderResponse {
 
 export interface Site {
   name: string;
+  _id: string;
 }

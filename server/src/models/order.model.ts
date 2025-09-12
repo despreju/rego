@@ -22,7 +22,7 @@ export interface IOrder extends Document {
   commentaires: IComment[];
   watch: boolean;
   history: IHistory[];
-  site: ISite;
+  siteId: string;
 }
 
 const CommentSchema = new Schema<IComment>(
@@ -52,7 +52,7 @@ const OrderSchema = new Schema<IOrder>({
   commentaires: { type: [CommentSchema], default: [] },
   watch: { type: Boolean, default: false },
   history: { type: [HistorySchema], default: [] },
-  site: { type: SiteSchema, required: true }
+  siteId: { type: String, required: true },
 
 }, { timestamps: true });
 

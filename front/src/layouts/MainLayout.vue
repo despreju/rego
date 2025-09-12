@@ -15,9 +15,7 @@
       </div>
       <div class="wrapper">
         <div class="sidebar">
-          <div class="current-site">SITE
-            <Switch />
-          </div>
+          <div class="current-site" @click="switchSiteIsOpen = true">{{ siteStore.currentSite.name }}<Switch /></div>
           <div class="sidebar-title">MENU PRINCIPAL</div>
           <div class="menu" @click="goTo('/home')">
             <home class="menu-icon" />
@@ -76,15 +74,17 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router';
 import { getUsers, logout } from '../api/authApi';
 import { useAuthStore } from '../stores/auth';
+import { useOrderStore } from '../stores/order'
+import { useSiteStore } from '../stores/site';
 import { getOrders } from '../api/orderApi';
 import { useError } from '../composables/useError'
 import type { ApiError } from '../api/axios';
-import { useOrderStore } from '../stores/order'
 import EditProfilePanel from '../components/EditProfilePanel.vue';
 import SwitchSitePanel from '../components/SwitchSitePanel.vue';
 
 const userStore = useAuthStore();
 const order = useOrderStore()
+const siteStore = useSiteStore()
 
 const { handleApiError } = useError()
 const apiErr = ref<ApiError | null>(null)
@@ -154,11 +154,6 @@ onMounted(async () => {
   flex-direction: column;
   overflow: hidden;
   z-index: 10;
-}
-
-/* push the last .menu element to the bottom regardless of how many menus there are */
-.sidebar>.menu:last-child {
-  margin-top: auto;
 }
 
 .current-site {
