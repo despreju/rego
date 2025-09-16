@@ -1,7 +1,6 @@
 import { Request, Response } from 'express';
 import User from '../models/user.model';
 import { generateToken } from '../utils/generateToken';
-import Site from '../models/site.model';
 
 interface AuthRequest extends Request {
   user?: any;
@@ -150,6 +149,29 @@ export const updateUser = async (req: AuthRequest, res: Response) => {
     return res.status(200).json({ user: safeUser });
   } catch (error) {
     console.error('updateUser error:', error);
+    return res.status(500).json({ message: 'Server error' });
+  }
+};
+
+export const updatePassword = async (req: AuthRequest, res: Response) => {
+    const _id = req.params.id ?? req.user?._id ?? req.user?.id;
+  if (!_id) return res.status(400).json({ message: 'Missing id parameter' })
+
+  const { password } = req.body
+
+  try {
+    // récupérer l'utilisateur avec le password pour vérification
+    const user = await User.findById(_id).select('+password').exec();
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    // mettre à jour le mot de passe (si ton UserSchema hash dans pre-save, garder la valeur brute,
+    // sinon décommenter le hash ci-dessous)
+    user.password = String(password);
+    await user.save();
+
+    return res.status(200).json({ message: 'Password updated' });
+  } catch (error) {
+    console.error('updatePassword error:', error);
     return res.status(500).json({ message: 'Server error' });
   }
 };

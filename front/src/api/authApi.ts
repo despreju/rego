@@ -72,3 +72,12 @@ export const updateUser = async (payload: LoginPayload) => {
     throw parseApiError(e)
   }
 };
+
+export const updatePassword = async (payload: { password: string }) => {
+  try {
+    const response = await api.put('/auth/update-password', payload);
+    return response.data;
+  } catch (e) {
+    throw parseApiError(e)
+  }
+};
