@@ -84,7 +84,7 @@ import money from '../assets/icons/money.svg';
 import users from '../assets/icons/users.svg';
 import ad from '../assets/icons/ad.svg';
 import Badge from '../components/Badge.vue';
-import Switch from '../assets/icons/Switch.svg';
+import Switch from '../assets/icons/switch.svg';
 import site from '../assets/icons/site.svg';
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router';
