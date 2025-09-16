@@ -17,8 +17,7 @@
             <Button color="blue" @click.prevent="onSubmitLogin" v-if="!isLoading" msg="Se connecter" style="width: 100%;"/>
             <Loading v-else />
         </div>
-        <!--<Button color="blue" @click.prevent="onSubmitSignin" v-if="!isLoading" msg="Se connecter"/>-->
-        <div class="new-account" @click="openNewAccountPanel = true">Créer un compte</div>
+        <!--<div class="new-account" @click="openNewAccountPanel = true">Créer un compte</div>-->
     </form>
 
     <Button color="accent" @click.prevent="guestMode" v-if="!isLoadingDemo" msg="Compte démo" style="margin-top: 4rem"/>

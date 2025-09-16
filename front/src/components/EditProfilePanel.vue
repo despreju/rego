@@ -14,7 +14,7 @@
         
         <div style="margin-top: auto;">
             <div class="actions-bar">
-                <Button color="green" @click="onUpdateOrder" v-if="!isLoading" msg="Mettre à jour" />
+                <Button color="green" @click="onUpdateOrder" v-if="!isLoading && auth.user.level === 'admin'" msg="Mettre à jour" />
                 <Button color="grey" @click="emit('close')" v-if="!isLoading" msg="Annuler" />
                 <Loading v-else />
             </div>
@@ -33,7 +33,9 @@ import type { ApiError } from '../api/axios.ts';
 import Panel from './Panel.vue';
 import type { User } from '../types/index.ts';
 import { useToast } from '../composables/useToast.ts';
+import { useAuthStore } from '../stores/auth.ts';
 
+const auth = useAuthStore();
 const props = defineProps<{ user: User }>()
 
 const emit = defineEmits(['close'])

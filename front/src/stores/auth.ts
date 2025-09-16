@@ -22,7 +22,7 @@ export const useAuthStore = defineStore('user', {
     logout() {
         this.isAuthenticated = false
         removeAccessToken();
-        sessionStorage.removeItem('rego-site');
+        localStorage.removeItem('rego-site');
         router.push('/login')
     },
     check(user: User) {

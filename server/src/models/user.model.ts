@@ -9,6 +9,7 @@ export interface IUser extends Document {
   firstname?: string;
   comparePassword(candidate: string): Promise<boolean>;
   sitesId: string[];
+  level?: string;
 }
 
 const UserSchema = new Schema<IUser>({
@@ -18,6 +19,7 @@ const UserSchema = new Schema<IUser>({
   name: { type: String, required: false },
   firstname: { type: String, required: false },
   sitesId: [{ type: String, required: false }],
+  level: { type: String, required: false, default: 'user' }
 }, { timestamps: true });
 
 UserSchema.pre('save', async function (next) {

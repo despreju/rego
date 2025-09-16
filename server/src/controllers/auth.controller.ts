@@ -13,7 +13,7 @@ export const register = async (req: Request, res: Response) => {
     const userExists = await User.findOne({ login });
     if (userExists) return res.status(400).json({ message: 'User already exists' });
 
-    const user = await User.create({ login, password, name, firstname, email, sitesId: [siteId] }) as import('../models/user.model').IUser;
+    const user = await User.create({ login, password, name, firstname, email, sitesId: [siteId], level: 'user' }) as import('../models/user.model').IUser;
 
     res.status(201).json({
       user: user,
@@ -85,6 +85,20 @@ export const getAllUsers = async (_req: Request, res: Response) => {
     }
 
     const users = await User.find(query)
+      .select('-password -__v')
+      .populate({ path: 'sitesId', select: 'name _id' })
+      .lean();
+
+    return res.status(200).json({ users });
+  } catch (error) {
+    console.error('getAllUsers error:', error);
+    return res.status(500).json({ message: 'Server error' });
+  }
+};
+
+export const getAllUsersAdmin = async (_req: Request, res: Response) => {
+  try {
+    const users = await User.find()
       .select('-password -__v')
       .populate({ path: 'sitesId', select: 'name _id' })
       .lean();

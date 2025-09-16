@@ -35,6 +35,15 @@ export const getUsers = async (): Promise<Array<User>> => {
   }
 };
 
+export const getUsersAdmin = async (): Promise<Array<User>> => {
+  try {
+    const res = await api.get('/auth/getUsersAdmin');
+    return res.data.users
+  } catch (e) {
+    throw parseApiError(e)
+  }
+};
+
 export const logout = async () => {
   try {
     const response = await api.get('/auth/logout');

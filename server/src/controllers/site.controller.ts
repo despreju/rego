@@ -66,3 +66,48 @@ export const getSitesForUser = async (req: Request, res: Response) => {
     return res.status(500).json({ message: 'Server error' });
   }
 };
+
+export const getAllSites = async (req: Request, res: Response) => {
+  try {
+    // optionnel : support d'une recherche par nom via ?q=...
+    const q = (req.query?.q ?? '').toString().trim();
+    const filter: any = {};
+    if (q) {
+      const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      filter.name = new RegExp(`^${escapeRegExp(q)}`, 'i');
+    }
+
+    const sites = await Site.find(filter).select('-__v').lean();
+    return res.status(200).json({ sites });
+  } catch (error) {
+    console.error('getAllSites error:', error);
+    return res.status(500).json({ message: 'Server error' });
+  }
+};
+
+export const getSite = async (req: Request, res: Response) => {
+  const siteNameRaw = (req.body?.siteName).toString().trim();
+  if (!siteNameRaw) return res.status(400).json({ message: 'Missing siteName' });
+
+  try {
+    // if an ObjectId was passed, try by id first
+    let site: any = null;
+    if (/^[0-9a-fA-F]{24}$/.test(siteNameRaw)) {
+      site = await Site.findById(siteNameRaw).select('-__v').lean().catch(() => null);
+    }
+
+    if (!site) {
+      const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      site = await Site.findOne({ name: new RegExp(`^${escapeRegExp(siteNameRaw)}$`, 'i') })
+        .select('-__v')
+        .lean()
+        .catch(() => null);
+    }
+
+    if (!site) return res.status(404).json({ message: 'Site not found' });
+    return res.status(200).json({ site });
+  } catch (error) {
+    console.error('getSite error:', error);
+    return res.status(500).json({ message: 'Server error' });
+  }
+};

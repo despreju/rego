@@ -9,7 +9,7 @@
                 <div class="topbar-loading" v-else>
                     <div class="title">{{ siteLoading }}</div>
                     <div>Récupération des commandes
-                        <loading v-if="loadingOrders" style="width: 40px; margin-left: 4rem" />
+                        <loading v-if="order.orderLoading" style="width: 40px; margin-left: 4rem" />
                         <success v-else style="fill: var(--color-success); width: 40px; margin-left: 4rem" />
                     </div>
                     <div>Récupération des utilisateurs
@@ -52,6 +52,7 @@ import { onMounted, ref } from 'vue';
 import Panel from './Panel.vue';
 import { fetchSites, createSite } from '../api/siteApi';
 import { useAuthStore } from '../stores/auth';
+import { useOrderStore } from '../stores/order';
 import { useSiteStore } from '../stores/site';
 import Button from './Button.vue';
 import Input from './Input.vue';
@@ -70,6 +71,7 @@ const apiErr = ref<ApiError | null>(null)
 
 const authStore = useAuthStore();
 const siteStore = useSiteStore();
+const order = useOrderStore();
 const addSite = ref(false);
 const loadingData = ref(false);
 const siteName = ref('');
@@ -97,6 +99,7 @@ const loadingUsers = ref(true);
 const loadingUI = ref(true);
 
 const switchToSite = async (site: Site) => {
+    localStorage.setItem('rego-site', site.name);
     siteLoading.value = site.name;
     loadingData.value = true;
     siteStore.setSite(site);
@@ -129,7 +132,7 @@ const getSiteData = async () => {
         await fetchUsers()
         loadingUsers.value = false;
         // Simulate UI preparation delay
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(resolve, 100));
         loadingUI.value = false;
         loadingData.value = false;
     } catch (e) {

@@ -9,6 +9,7 @@ export type User = {
   name: string;
   firstname: string;
   sitesId: Array<string>;
+  level: string;
 };
 
 export interface LoginPayload {
@@ -17,6 +18,7 @@ export interface LoginPayload {
   firstname?: string | null | undefined;
   name?: string | null | undefined;
   email?: string | null | undefined;
+  level?: string | null | undefined;
 }
 
 export interface LoginResponse {

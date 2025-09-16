@@ -17,3 +17,21 @@ export const createSite = async (siteName: String, user_id: String) => {
     throw parseApiError(e)
   }
 };
+
+export const getAllSites = async () => {
+  try {
+    const res = await api.get('/site/getSitesAdmin')
+    return res.data.sites
+  } catch (e) {    
+    throw parseApiError(e)
+  }
+};
+
+export const getSite = async (siteName: String) => {
+  try {
+    const res = await api.post('/site/getSite', { siteName })
+    return res.data.site
+  } catch (e) {    
+    throw parseApiError(e)
+  } 
+};

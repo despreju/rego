@@ -5,8 +5,6 @@
             <div class="title-page">Gestion des Utilisateurs</div>
             <div class="actions">
                 <Input class="search-input" type="text" placeholder="Rechercher ..." v-model="search" />
-                <Button color="blue" class="action-button" @click="isNewUserPanelOpen = true" :icon="addIcon"
-                    msg="Ajouter un utilisateur" v-if="auth.user.level === 'admin'" />
             </div>
         </div>
         <div class="table-info"><strong>{{ auth.users.length }}</strong> résultats</div>
@@ -21,7 +19,7 @@
                 </div>
             </div>
         </div>
-        <div v-for="(data, index) in auth.users" :key="index">
+        <div v-for="(data, index) in allUsers" :key="index">
             <div class="table-row">
                 <div class="table-row__login">
                     <profile class="profile-icon" />
@@ -38,16 +36,22 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { onMounted, ref } from 'vue';
 import arrow_up from '../assets/icons/arrow_up.svg'
 import arrow_down from '../assets/icons/arrow_down.svg'
 import filterIcon from '../assets/icons/filter.svg'
 import Input from '../components/Input.vue';
 import { useAuthStore } from '../stores/auth.ts';
 import profile from '../assets/icons/profile.svg';
-import addIcon from '../assets/icons/add.svg';
 import AddUser from '../components/AddUser.vue';
-import Button from '../components/Button.vue';
+import type { User } from '../types/index.ts';
+import { getUsersAdmin } from '../api/authApi.ts';
+import { useError } from '../composables/useError.ts'
+import type { ApiError } from '../api/axios.ts';
+
+const { handleApiError } = useError()
+const apiErr = ref<ApiError | null>(null)
+
 const auth = useAuthStore()
 
 const isNewUserPanelOpen = ref(false)
@@ -71,7 +75,18 @@ function filter(index: number) {
     })
 }
 
+const allUsers = ref<User[]>([]);
+
 const search = ref('');
+
+onMounted(async () => {
+    try {
+        const response = await getUsersAdmin()
+        allUsers.value = response
+    } catch (e) {
+        apiErr.value = handleApiError(e)
+    }
+});
 </script>
 
 <style scoped>

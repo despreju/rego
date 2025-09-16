@@ -7,6 +7,8 @@ import Shopify from '../pages/Shopify.vue';
 import Ads from '../pages/Ads.vue';
 import Payment from '../pages/Payment.vue';
 import Users from '../pages/Users.vue';
+import UsersAdmin from '../pages/UsersAdmin.vue';
+import Sites from '../pages/Sites.vue';
 import { check } from '../api/authApi';
 
 const routes = [
@@ -48,6 +50,16 @@ const routes = [
   {
     path: '/users',
     component: Users,
+    meta: { requiresAuth: true, layout: 'app' },
+  },
+  {
+    path: '/users-admin',
+    component: UsersAdmin,
+    meta: { requiresAuth: true, layout: 'app' },
+  },
+  {
+    path: '/sites-admin',
+    component: Sites,
     meta: { requiresAuth: true, layout: 'app' },
   },
 

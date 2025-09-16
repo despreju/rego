@@ -15,7 +15,9 @@
       </div>
       <div class="wrapper">
         <div class="sidebar">
-          <div class="current-site" @click="switchSiteIsOpen = true">{{ siteStore.currentSite.name }}<Switch /></div>
+          <div class="current-site" @click="switchSiteIsOpen = true">{{ siteStore.currentSite.name }}
+            <Switch />
+          </div>
           <div class="sidebar-title">MENU PRINCIPAL</div>
           <div class="menu" @click="goTo('/home')">
             <home class="menu-icon" />
@@ -36,7 +38,7 @@
             <div class="menu-title">Dépenses diverses</div>
             <Badge class="menu-badge" type="primary">{{ order.adsList.length }}</Badge>
           </div>
-          <div class="sidebar-subtitle">GESTION INTERNE</div>
+          <div class="sidebar-subtitle">GESTION DU SITE</div>
           <div class="menu" @click="goTo('/users')">
             <users class="menu-icon" />
             <div class="menu-title">Utilisateurs</div>
@@ -47,6 +49,19 @@
             <div class="menu-title">Versement</div>
             <Badge class="menu-badge" type="accent">{{ order.paymentsList.length }}</Badge>
           </div>
+          <template v-if="userStore.user.level === 'admin'">
+            <div class="sidebar-title">ADMINISTRATION</div>
+            <div class="menu" @click="goTo('/users-admin')">
+              <users class="menu-icon" />
+              <div class="menu-title">Tous les utilisateurs</div>
+              <Badge class="menu-badge" type="purple">{{ allUsersCount }}</Badge>
+            </div>
+            <div class="menu" @click="goTo('/sites-admin')">
+              <site class="menu-icon" />
+              <div class="menu-title">Sites</div>
+              <Badge class="menu-badge" type="purple">{{ allSitesCount }}</Badge>
+            </div>
+          </template>
           <div class="menu" @click="onSubmitLogout">
             <logoutIcon class="menu-icon" style="fill: none;" />
             <div class="menu-title">Se déconnecter</div>
@@ -70,9 +85,10 @@ import users from '../assets/icons/users.svg';
 import ad from '../assets/icons/ad.svg';
 import Badge from '../components/Badge.vue';
 import Switch from '../assets/icons/Switch.svg';
+import site from '../assets/icons/site.svg';
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router';
-import { getUsers, logout } from '../api/authApi';
+import { getUsers, getUsersAdmin, logout } from '../api/authApi';
 import { useAuthStore } from '../stores/auth';
 import { useOrderStore } from '../stores/order'
 import { useSiteStore } from '../stores/site';
@@ -81,8 +97,9 @@ import { useError } from '../composables/useError'
 import type { ApiError } from '../api/axios';
 import EditProfilePanel from '../components/EditProfilePanel.vue';
 import SwitchSitePanel from '../components/SwitchSitePanel.vue';
+import { getAllSites, getSite } from '../api/siteApi';
 
-const userStore = useAuthStore();
+const userStore = useAuthStore()
 const order = useOrderStore()
 const siteStore = useSiteStore()
 
@@ -121,20 +138,38 @@ const fetchUsers = async () => {
   }
 };
 
+const allUsersCount = ref(0);
+const allSitesCount = ref(0);
+
 const getSiteData = async () => {
   try {
     await fetchOrders()
     await fetchUsers()
+    if (userStore.user.level === 'admin') {
+      const res1 = await getAllSites()
+      allSitesCount.value = res1.length
+      const res2 = await getUsersAdmin()
+      allUsersCount.value = res2.length
+    }
   } catch (e) {
     apiErr.value = handleApiError(e)
   }
 };
 
 onMounted(async () => {
-  if (sessionStorage.getItem('rego-site')) {
+  if (localStorage.getItem('rego-site')) {
+    const siteName = localStorage.getItem('rego-site') ?? '';
+    const site = await getSite(siteName);
+    siteStore.setSite(site);
     await getSiteData()
   } else {
     switchSiteIsOpen.value = true;
+    if (userStore.user.level === 'admin') {
+      const res1 = await getAllSites()
+      allSitesCount.value = res1.length
+      const res2 = await getUsersAdmin()
+      allUsersCount.value = res2.length
+    }
   }
 });
 </script>
