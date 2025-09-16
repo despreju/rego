@@ -8,6 +8,8 @@ export type User = {
   login: string;
   name: string;
   firstname: string;
+  sitesId: Array<string>;
+  level: string;
 };
 
 export interface LoginPayload {
@@ -16,6 +18,7 @@ export interface LoginPayload {
   firstname?: string | null | undefined;
   name?: string | null | undefined;
   email?: string | null | undefined;
+  level?: string | null | undefined;
 }
 
 export interface LoginResponse {
@@ -35,6 +38,7 @@ export interface Order {
   commentaires: Array<Commentaire>;
   watch: boolean;
   history: Array<History>;
+  siteId: string;
 }
 
 export interface History {
@@ -59,9 +63,15 @@ export interface OrderPayload {
   commentaires: string;
   watch: boolean,
   user_id: string,
-  history: string
+  history: string,
+  siteId: string
 }
 
 export interface OrderResponse {
   _id: number;
+}
+
+export interface Site {
+  name: string;
+  _id: string;
 }

@@ -1,19 +1,31 @@
 import { Request, Response } from 'express';
 import Order from '../models/order.model';
 import User from '../models/user.model';
+import Site from '../models/site.model';
+import mongoose from 'mongoose';
 
 export const save = async (req: Request, res: Response) => {
-  const { date, categorie, orderId, prixClient, prixAchat, commentaires, watch, history, user_id } = req.body;
+  const { date, categorie, orderId, prixClient, prixAchat, commentaires, watch, history, user_id, siteId } = req.body;
   try {
+    let historyTmp = [];
+    let commentaryTmp = []
+    if (Array.isArray(history)) {
+      historyTmp = history
+      commentaryTmp = commentaires
+    } else {
+      historyTmp = [{ date: new Date(), action: history, user_id: user_id }]
+      commentaryTmp = commentaires !== '' ? [{ date: new Date(), commentaire: commentaires, user_id: user_id }] : []
+    }
     const order = await Order.create({
       date,
       categorie,
       orderId,
       prixClient,
       prixAchat,
-      commentaires: commentaires !== '' ? [{ date: new Date(), commentaire: commentaires, user_id: user_id }] : [],
+      commentaires: commentaryTmp,
       watch,
-      history: [{ date: new Date(), action: history, user_id: user_id }]
+      history: historyTmp,
+      siteId: siteId
     }) as import('../models/order.model').IOrder;
     res.status(201).json({
       id: order.id,
@@ -24,72 +36,64 @@ export const save = async (req: Request, res: Response) => {
   }
 };
 
-export const getAll = async (_req: Request, res: Response) => {
-  console.log('get all orders called');
+export const getAll = async (req: Request, res: Response) => {
   try {
-    // récupère les commandes en plain objects pour les transformer facilement
-    const orders = await Order.find().lean();
+    const siteIdRaw = (req.body?.siteId ?? req.query?.siteId ?? '').toString().trim();
+    const query: any = {};
 
-    // collecter tous les user_id présents dans history et commentaires
+    if (siteIdRaw) {
+      // si c'est un ObjectId valide, cast en ObjectId, sinon recherche par valeur brute
+      if (/^[0-9a-fA-F]{24}$/.test(siteIdRaw)) {
+        query.siteId = new mongoose.Types.ObjectId(siteIdRaw);
+      } else {
+        query.siteId = siteIdRaw;
+      }
+    }
+
+    const orders = await Order.find(query).lean();
+
+    // remplir users présents dans history/commentaires (même logique qu'avant)
     const userIdSet = new Set<string>();
     for (const o of orders) {
-      if (Array.isArray(o.history)) {
-        for (const h of o.history) {
-          if (h?.user_id !== undefined && h?.user_id !== null) userIdSet.add(String(h.user_id));
-        }
-      }
-      if (Array.isArray(o.commentaires)) {
-        for (const c of o.commentaires) {
-          if (c?.user_id !== undefined && c?.user_id !== null) userIdSet.add(String(c.user_id));
-        }
-      }
+      if (Array.isArray(o.history)) for (const h of o.history) if (h?.user_id) userIdSet.add(String(h.user_id));
+      if (Array.isArray(o.commentaires)) for (const c of o.commentaires) if (c?.user_id) userIdSet.add(String(c.user_id));
     }
 
-    if (userIdSet.size === 0) {
-      return res.status(200).json(orders);
+    let users: any[] = [];
+    if (userIdSet.size) {
+      const ids = Array.from(userIdSet);
+      const objectIds = ids.filter(id => /^[0-9a-fA-F]{24}$/.test(id));
+      const numericIds = ids.filter(id => !/^[0-9a-fA-F]{24}$/.test(id)).map(n => Number(n)).filter(n => !Number.isNaN(n));
+
+      const orClause: any[] = [];
+      if (objectIds.length) orClause.push({ _id: { $in: objectIds } });
+      if (numericIds.length) orClause.push({ id: { $in: numericIds } });
+
+      if (orClause.length) users = await User.find({ $or: orClause }).select('firstname name id login').lean();
     }
 
-    const ids = Array.from(userIdSet);
-    const objectIds = ids.filter(id => /^[0-9a-fA-F]{24}$/.test(id));
-    const numericIds = ids.filter(id => !/^[0-9a-fA-F]{24}$/.test(id)).map(n => Number(n)).filter(n => !Number.isNaN(n));
-
-    const orClause: any[] = [];
-    if (objectIds.length) orClause.push({ _id: { $in: objectIds } });
-    if (numericIds.length) orClause.push({ id: { $in: numericIds } });
-
-    // rechercher les users (par _id et/ou par id numérique) — on récupère aussi le login
-    const users = orClause.length ? await User.find({ $or: orClause }).select('firstname name id login').lean() : [];
-
-    // construire un map pour lookup rapide (clefs: _id string et id number -> user object)
-    const userMap = new Map<string, { name?: string; firstname?: string; login?: string }>();
+    const userMap = new Map<string, any>();
     for (const u of users) {
       const userObj = { name: u.name ?? '', firstname: u.firstname ?? '', login: u.login ?? '' };
       if (u._id) userMap.set(String(u._id), userObj);
       if (u.id !== undefined) userMap.set(String(u.id), userObj);
     }
 
-    // mapper orders sans toucher à la BDD : ajouter user (objet) dans chaque history/commentaire
     const mappedOrders = orders.map(o => {
       const oCopy: any = { ...o };
       if (Array.isArray(oCopy.history)) {
-        oCopy.history = oCopy.history.map((h: any) => ({
-          ...h,
-          user: userMap.get(String(h.user_id)) ?? null
-        }));
+        oCopy.history = oCopy.history.map((h: any) => ({ ...h, user: userMap.get(String(h.user_id)) ?? null }));
       }
       if (Array.isArray(oCopy.commentaires)) {
-        oCopy.commentaires = oCopy.commentaires.map((c: any) => ({
-          ...c,
-          user: userMap.get(String(c.user_id)) ?? null
-        }));
+        oCopy.commentaires = oCopy.commentaires.map((c: any) => ({ ...c, user: userMap.get(String(c.user_id)) ?? null }));
       }
       return oCopy;
     });
 
-    res.status(200).json(mappedOrders);
+    return res.status(200).json(mappedOrders);
   } catch (error) {
-    console.log(error);
-    res.status(500).json({ message: 'Server error' });
+    console.error('getAll orders error:', error);
+    return res.status(500).json({ message: 'Server error' });
   }
 };
 

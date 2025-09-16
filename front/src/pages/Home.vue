@@ -6,7 +6,7 @@
   <div class="dashboard">
     <div class="topbar">
       <div class="title-page">Dashboard</div>
-      <div class="actions">
+      <div class="actions" v-if="auth.user.level === 'admin'">
         <ExportOrders class="action-button" />
         <ImportOrders class="action-button" style="margin-left: 2rem;" />
       </div>
@@ -19,7 +19,8 @@
       </div>
       <div class="grid-card" style="grid-column: 2;grid-row: 1">
         <div class="card-title">Trésorerie</div>
-        <div class="card-info">{{ (totalMarge() - sumPrixAchat(order.paymentsList) - sumPrixAchat(order.shopifyList) - sumPrixAchat(order.adsList)).toFixed(2) }} €</div>
+        <div class="card-info">{{ (totalMarge() - sumPrixAchat(order.paymentsList) - sumPrixAchat(order.shopifyList) -
+          sumPrixAchat(order.adsList)).toFixed(2) }} €</div>
       </div>
       <div class="grid-card" style="grid-column: 3;grid-row: 1">
         <div class="card-title">Chiffre d'affaires</div>
@@ -39,6 +40,7 @@
         style="grid-column-start: 1; grid-column-end: 4; grid-row-start: 2; grid-row-end: 4;">
         <div class="card-title">Commandes sur les 10 dernières semaines</div>
         <apexchart type="area" height="100%" :options="chartOptions" :series="series"></apexchart>
+
       </div>
       <div class="grid-card" style="grid-column: 4;grid-row: 2">
         <div class="card-title">Dépenses Shopify</div>
@@ -55,6 +57,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useOrderStore } from '../stores/order'
+import { useAuthStore } from '../stores/auth'
 import type { Order } from '../types';
 import ImportOrders from '../components/ImportOrders.vue';
 import addIcon from '../assets/icons/add.svg'
@@ -71,6 +74,7 @@ const isNewPaymentPanelOpen = ref(false)
 const isNewShopifyPanelOpen = ref(false)
 
 const order = useOrderStore()
+const auth = useAuthStore()
 
 function sumPrixAchat(list: Array<Order>): number {
   return Number((list || []).reduce((acc, item) => {

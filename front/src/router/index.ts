@@ -7,6 +7,8 @@ import Shopify from '../pages/Shopify.vue';
 import Ads from '../pages/Ads.vue';
 import Payment from '../pages/Payment.vue';
 import Users from '../pages/Users.vue';
+import UsersAdmin from '../pages/UsersAdmin.vue';
+import Sites from '../pages/Sites.vue';
 import { check } from '../api/authApi';
 
 const routes = [
@@ -50,6 +52,16 @@ const routes = [
     component: Users,
     meta: { requiresAuth: true, layout: 'app' },
   },
+  {
+    path: '/users-admin',
+    component: UsersAdmin,
+    meta: { requiresAuth: true, layout: 'app' },
+  },
+  {
+    path: '/sites-admin',
+    component: Sites,
+    meta: { requiresAuth: true, layout: 'app' },
+  },
 
 ];
 
@@ -60,7 +72,6 @@ const router = createRouter({
 
 // Navigation guard
 router.beforeEach(async (to, _, next) => {
-  console.log('beforeEach')
   const auth = useAuthStore();
   const requiresAuth = to.meta.requiresAuth;
 

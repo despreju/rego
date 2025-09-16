@@ -103,13 +103,14 @@ function exportXlsx() {
         if (!Array.isArray(list)) continue;
         for (const o of list) {
             rows.push({
-                'Date (dd-mm-yyyy)': formatDateDDMMYYYY(o?.date),
+                'Date': formatDateDDMMYYYY(o?.date),
                 'Catégorie': o?.categorie ?? '',
                 'ID': getId(o),
                 'Prix client': (o?.prixClient !== undefined && o?.prixClient !== null) ? Number(o.prixClient) : '',
                 'Prix achat': (o?.prixAchat !== undefined && o?.prixAchat !== null) ? Number(o.prixAchat) : '',
-                'Commentaires': commentairesToJSON(o?.commentaires ?? o?.commentaire ?? ''),
-                'History': historyToJSON(o?.history ?? '')
+                'watch': o?.watch ? 1 : 0,
+                'Commentaires': commentairesToJSON(o?.commentaires ?? o?.commentaire ?? '[]'),
+                'History': historyToJSON(o?.history ?? '[]')
             });
         }
     }

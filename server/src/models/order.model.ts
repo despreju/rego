@@ -1,4 +1,5 @@
 import mongoose, { Schema, Document } from 'mongoose';
+import { ISite, SiteSchema } from './site.model';
 
 export interface IComment {
   user_id: string;
@@ -21,7 +22,7 @@ export interface IOrder extends Document {
   commentaires: IComment[];
   watch: boolean;
   history: IHistory[];
-  owner: string;
+  siteId: string;
 }
 
 const CommentSchema = new Schema<IComment>(
@@ -51,7 +52,7 @@ const OrderSchema = new Schema<IOrder>({
   commentaires: { type: [CommentSchema], default: [] },
   watch: { type: Boolean, default: false },
   history: { type: [HistorySchema], default: [] },
-  owner: { type: String, required: false }
+  siteId: { type: String, required: true },
 
 }, { timestamps: true });
 

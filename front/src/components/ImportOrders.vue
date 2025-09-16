@@ -13,8 +13,10 @@ import { ref } from 'vue';
 import { saveOrder } from '../api/orderApi';
 import importIcon from '../assets/icons/import.svg';
 import { useAuthStore } from '../stores/auth';
+import { useSiteStore } from '../stores/site';
 
 const auth = useAuthStore()
+const siteStore = useSiteStore()
 
 function handleFileUpload(file: File) {
 
@@ -33,6 +35,17 @@ function handleFileUpload(file: File) {
             date_info.setSeconds(date_info.getSeconds() + secs);
         }
         return new Date(date_info.getFullYear(), date_info.getMonth(), date_info.getDate(), date_info.getHours(), date_info.getMinutes(), date_info.getSeconds());
+    }
+
+    function oneZeroToBool(v: any): boolean {
+        if (typeof v === 'boolean') return v;
+        if (v === undefined || v === null) return false;
+        const s = String(v).trim().toLowerCase();
+        if (s === '1' || s === 'true') return true;
+        if (s === '0' || s === 'false') return false;
+        // fallback: treat any non-empty numeric as boolean
+        const n = Number(s);
+        return !Number.isNaN(n) && n !== 0;
     }
 
     function parseDateDDMMYYYY(input: string): Date | null {
@@ -79,19 +92,20 @@ function handleFileUpload(file: File) {
 
             // fallback à la date actuelle si non parseable
             const date = dateObj ?? new Date();
-            counter ++;
+            counter++;
             saveOrder({
                 date,
                 categorie: rowObj["Catégorie"] || '',
                 orderId,
                 prixClient: Math.abs(Number(rowObj["Prix client"])) || 0,
                 prixAchat: Math.abs(Number(rowObj["Prix achat"])) || 0,
-                commentaires: rowObj["Commentaire"] || '',
-                watch: false,
+                commentaires: JSON.parse(rowObj["Commentaires"]),
+                watch: oneZeroToBool(rowObj["watch"]),
                 user_id: auth.user._id,
-                history: "Import"
+                history: JSON.parse(rowObj["History"]),
+                siteId: String(siteStore.currentSite._id) || '',
             }).then(() => {
-                counter ++;
+                counter++;
             }).catch(error => {
                 console.error('Error saving order:', error);
             });

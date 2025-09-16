@@ -90,6 +90,11 @@ button:hover {
 
 .button-disabled {
     pointer-events: none ;
+    background: var(--color-grey)
+}
+
+.button-disabled  .button-icon{
+    background: var(--color-grey)
 }
 
 </style>

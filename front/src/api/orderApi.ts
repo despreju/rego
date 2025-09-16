@@ -1,8 +1,7 @@
 import { useOrderStore } from '../stores/order';
+import { useSiteStore } from '../stores/site';
 import type { OrderPayload, OrderResponse } from '../types';
 import api, { parseApiError } from './axios'
-
-
 
 export const saveOrder = async (payload: OrderPayload): Promise<OrderResponse> => {
   try {
@@ -15,7 +14,8 @@ export const saveOrder = async (payload: OrderPayload): Promise<OrderResponse> =
 
 export const getOrders = async () => {
   try {
-    const res = await api.get('/order/orders');
+    const siteStore = useSiteStore()
+    const res = await api.post('/order/orders', { siteId: siteStore.currentSite._id });
     const order = useOrderStore()
     order.saveOrders(res.data.map((order: OrderPayload) => ({
       ...order,

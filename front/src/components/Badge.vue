@@ -45,4 +45,8 @@ const props = defineProps({
 .badge.accent {
     background: var(--color-accent);
 }
+
+.badge.purple {
+    background: var(--color-purple);
+}
 </style>

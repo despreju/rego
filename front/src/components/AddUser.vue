@@ -17,7 +17,7 @@
         
         <div style="margin-top: auto;">
             <div class="actions-bar">
-                <Button color="green" @click="onAddUser" v-if="!isLoading" msg="Ajouter" />
+                <Button color="green" @click="onAddUser()" v-if="!isLoading" msg="Ajouter"/>
                 <Button color="grey" @click="emit('close')" v-if="!isLoading" msg="Annuler" />
                 <Loading v-else />
             </div>
@@ -47,13 +47,15 @@ const formUser = ref<{
     email: string,
     name: string,
     firstname: string,
-    password: string
+    password: string,
+    level?: string
 }>({
     login: '',
     email: '',
     name: '',
     firstname: '',
-    password: ''
+    password: '',
+    level: 'user'
 });
 
 const onAddUser = async () => {
@@ -64,7 +66,8 @@ const onAddUser = async () => {
             email: formUser.value.email,
             name: formUser.value.name,
             firstname: formUser.value.firstname,
-            password: formUser.value.password
+            password: formUser.value.password,
+            level: formUser.value.level || 'user'
         })
         await getUsers()
         const { showToast } = useToast()

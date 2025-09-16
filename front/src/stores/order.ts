@@ -14,6 +14,7 @@ function pushToList(list: Array<Order>, order: Order) {
     commentaires: order.commentaires ?? [],
     watch: order.watch ?? false,
     history: order.history ?? [],
+    siteId: order.siteId ?? '',
   });
 }
 
@@ -23,10 +24,12 @@ export const useOrderStore = defineStore('order', {
     adsList: [] as Array<Order>,
     shopifyList: [] as Array<Order>,
     paymentsList: [] as Array<Order>,
+    orderLoading: false as boolean,
   }),
 
   actions: {
     saveOrders(orders: Array<Order>) {
+      this.orderLoading = true;
       this.ordersList = [];
       this.adsList = [];
       this.shopifyList = [];
@@ -42,6 +45,7 @@ export const useOrderStore = defineStore('order', {
           pushToList(this.ordersList, order);
         }
       });
+      this.orderLoading = false;
     },
   },
 })

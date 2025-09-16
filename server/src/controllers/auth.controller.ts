@@ -7,22 +7,16 @@ interface AuthRequest extends Request {
 }
 
 export const register = async (req: Request, res: Response) => {
-  console.log('signin called');
-  const { login, password, name, firstname, email } = req.body;
+  const { login, password, name, firstname, email, siteId } = req.body;
   try {
     const userExists = await User.findOne({ login });
-    console.log('1');
     if (userExists) return res.status(400).json({ message: 'User already exists' });
 
-    const user = await User.create({ login, password, name, firstname, email }) as import('../models/user.model').IUser;
-    console.log('2');
+    const user = await User.create({ login, password, name, firstname, email, sitesId: [siteId], level: 'user' }) as import('../models/user.model').IUser;
+
     res.status(201).json({
-      _id: user._id,
-      login: user.login,
-      name: user.name,
-      firstname: user.firstname,
-      email: user.email,
-      token: generateToken((user._id as string).toString())
+      user: user,
+      token: generateToken(String(user._id))
     });
   } catch (error) {
     console.log(error);
@@ -31,7 +25,7 @@ export const register = async (req: Request, res: Response) => {
 };
 
 export const login = async (req: Request, res: Response) => {
-  console.log('login called', );
+  console.log('login called',);
   const { login, password } = req.body;
   try {
     const user = await User.findOne({ login }) as import('../models/user.model').IUser;
@@ -77,8 +71,37 @@ export const getUser = async (req: AuthRequest, res: Response) => {
 
 export const getAllUsers = async (_req: Request, res: Response) => {
   try {
-    // récupère tous les users sans champs sensibles
-    const users = await User.find().select('-password -__v').lean();
+    const siteIdRaw = String(_req.body?.siteId ?? _req.query?.siteId ?? '').trim();
+    const query: any = {};
+
+    if (siteIdRaw) {
+      // valider le format ObjectId (24 hex chars)
+      if (!/^[0-9a-fA-F]{24}$/.test(siteIdRaw)) {
+        return res.status(400).json({ message: 'Invalid siteId' });
+      }
+      // users whose sitesId array contains the given siteId
+      query.sitesId = siteIdRaw;
+    }
+
+    const users = await User.find(query)
+      .select('-password -__v')
+      .populate({ path: 'sitesId', select: 'name _id' })
+      .lean();
+
+    return res.status(200).json({ users });
+  } catch (error) {
+    console.error('getAllUsers error:', error);
+    return res.status(500).json({ message: 'Server error' });
+  }
+};
+
+export const getAllUsersAdmin = async (_req: Request, res: Response) => {
+  try {
+    const users = await User.find()
+      .select('-password -__v')
+      .populate({ path: 'sitesId', select: 'name _id' })
+      .lean();
+
     return res.status(200).json({ users });
   } catch (error) {
     console.error('getAllUsers error:', error);
@@ -126,6 +149,29 @@ export const updateUser = async (req: AuthRequest, res: Response) => {
     return res.status(200).json({ user: safeUser });
   } catch (error) {
     console.error('updateUser error:', error);
+    return res.status(500).json({ message: 'Server error' });
+  }
+};
+
+export const updatePassword = async (req: AuthRequest, res: Response) => {
+    const _id = req.params.id ?? req.user?._id ?? req.user?.id;
+  if (!_id) return res.status(400).json({ message: 'Missing id parameter' })
+
+  const { password } = req.body
+
+  try {
+    // récupérer l'utilisateur avec le password pour vérification
+    const user = await User.findById(_id).select('+password').exec();
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    // mettre à jour le mot de passe (si ton UserSchema hash dans pre-save, garder la valeur brute,
+    // sinon décommenter le hash ci-dessous)
+    user.password = String(password);
+    await user.save();
+
+    return res.status(200).json({ message: 'Password updated' });
+  } catch (error) {
+    console.error('updatePassword error:', error);
     return res.status(500).json({ message: 'Server error' });
   }
 };

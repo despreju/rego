@@ -4,6 +4,7 @@ import express from 'express';
 import cors from 'cors';
 import authRoutes from './routes/auth.routes';
 import orderRoutes from './routes/order.routes';
+import siteRoutes from './routes/site.routes';
 import bodyParser from 'body-parser';
 
 dotenv.config();
@@ -37,7 +38,7 @@ app.use(express.json());
 app.use(bodyParser.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/order', orderRoutes);
-
+app.use('/api/site', siteRoutes);
 
 
 mongoose.connect(process.env.MONGO_URI!)
