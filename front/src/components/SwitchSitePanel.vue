@@ -147,8 +147,6 @@ onMounted(async () => {
         } else {
             sites.value = res.map((site: Site) => (site));
         }
-    }).catch((error) => {
-        console.error('Error fetching sites:', error);
     });
 });
 </script>
