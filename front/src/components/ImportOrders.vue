@@ -106,11 +106,8 @@ function handleFileUpload(file: File) {
                 siteId: String(siteStore.currentSite._id) || '',
             }).then(() => {
                 counter++;
-            }).catch(error => {
-                console.error('Error saving order:', error);
             });
         }
-        console.log(counter + ' orders processed.');
     };
 
     reader.readAsArrayBuffer(file);
