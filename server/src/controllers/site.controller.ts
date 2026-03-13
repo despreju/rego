@@ -86,6 +86,7 @@ export const getAllSites = async (req: Request, res: Response) => {
 };
 
 export const getSite = async (req: Request, res: Response) => {
+  console.log('getSite called with body:', req.body);
   const siteNameRaw = (req.body?.siteName).toString().trim();
   if (!siteNameRaw) return res.status(400).json({ message: 'Missing siteName' });
 
